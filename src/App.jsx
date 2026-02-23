@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import WorldMap from './components/WorldMap'
 import ResultsPanel from './components/ResultsPanel'
 import { reverseGeocode, isOcean, isAntarctica, getRandomLandCoords } from './utils/geocode'
@@ -23,9 +23,11 @@ export default function App() {
   const [error, setError] = useState(null)
   const [searchCenter, setSearchCenter] = useState(NYC_CENTER)
   const [searchRadius, setSearchRadius] = useState(DEFAULT_RADIUS)
+  const [shareToast, setShareToast] = useState(false)
 
   // Keep a ref to the latest cuisine so re-searches can use it
   const lastCuisineRef = useRef(null)
+  const toastTimerRef = useRef(null)
 
   const searchRestaurants = useCallback(async (cuisineInfo, center, radius) => {
     return findNYCRestaurants(cuisineInfo, {
@@ -100,7 +102,32 @@ export default function App() {
     setResult(null)
     setError(null)
     setLoading(false)
+    // Clear ?lat&lng params from URL when closing
+    const url = new URL(window.location.href)
+    url.searchParams.delete('lat')
+    url.searchParams.delete('lng')
+    window.history.replaceState({}, '', url.toString())
   }, [])
+
+  // Share pin: encode lat/lng into URL + copy to clipboard
+  const handleSharePin = useCallback(() => {
+    if (!result) return
+    const { lat, lng } = result.location
+    const url = new URL(window.location.href)
+    url.searchParams.set('lat', lat.toFixed(4))
+    url.searchParams.set('lng', lng.toFixed(4))
+    const shareUrl = url.toString()
+    // Update browser URL bar
+    window.history.replaceState({}, '', shareUrl)
+    // Copy to clipboard
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(shareUrl).catch(() => {})
+    }
+    // Show toast
+    setShareToast(true)
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
+    toastTimerRef.current = setTimeout(() => setShareToast(false), 2500)
+  }, [result])
 
   // Re-search with new center/radius
   const handleCenterChange = useCallback(async (newCenter) => {
@@ -133,6 +160,17 @@ export default function App() {
     }
   }, [searchCenter, result, searchRestaurants])
 
+  // On mount: check URL for ?lat=&lng= to auto-load a shared pin
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const lat = parseFloat(params.get('lat'))
+    const lng = parseFloat(params.get('lng'))
+    if (!isNaN(lat) && !isNaN(lng)) {
+      processPin(lat, lng)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   return (
     <div className="app">
       <header className="app-header">
@@ -162,6 +200,8 @@ export default function App() {
         loading={loading}
         error={error}
         onClose={handleClose}
+        onSharePin={handleSharePin}
+        shareToast={shareToast}
         searchCenter={searchCenter}
         searchRadius={searchRadius}
         onCenterChange={handleCenterChange}

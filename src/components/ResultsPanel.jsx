@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { getBadges } from '../utils/badges'
 import NYCMiniMap from './NYCMiniMap'
 
-export default function ResultsPanel({ result, loading, error, onClose, searchCenter, searchRadius, onCenterChange, onRadiusChange }) {
+export default function ResultsPanel({ result, loading, error, onClose, onSharePin, shareToast, searchCenter, searchRadius, onCenterChange, onRadiusChange }) {
   if (!loading && !result && !error) return null
 
   return (
@@ -14,11 +14,19 @@ export default function ResultsPanel({ result, loading, error, onClose, searchCe
         &times;
       </button>
 
+      {/* Share toast */}
+      {shareToast && (
+        <div className="share-toast" role="status">
+          ✅ Link copied to clipboard!
+        </div>
+      )}
+
       {loading && <LoadingState />}
       {error && <ErrorState message={error} />}
       {result && !loading && (
         <ResultContent
           result={result}
+          onSharePin={onSharePin}
           searchCenter={searchCenter}
           searchRadius={searchRadius}
           onCenterChange={onCenterChange}
@@ -74,17 +82,41 @@ function ErrorState({ message }) {
   )
 }
 
-function ResultContent({ result, searchCenter, searchRadius, onCenterChange, onRadiusChange }) {
+/** Haversine distance in km between two lat/lng points */
+function haversineKm(lat1, lon1, lat2, lon2) {
+  const R = 6371
+  const dLat = (lat2 - lat1) * Math.PI / 180
+  const dLon = (lon2 - lon1) * Math.PI / 180
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) ** 2
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+}
+
+function ResultContent({ result, onSharePin, searchCenter, searchRadius, onCenterChange, onRadiusChange }) {
   const { location, cuisine, restaurants } = result
 
   return (
     <div className="result-content result-slide-in">
       <div className="result-section location-section">
         <h3 className="section-label">🌍 Pin dropped near</h3>
-        <p className="location-name">{location.displayName}</p>
-        <p className="coordinates">
-          {location.lat.toFixed(3)}, {location.lng.toFixed(3)}
-        </p>
+        <div className="location-row">
+          <div>
+            <p className="location-name">{location.displayName}</p>
+            <p className="coordinates">
+              {location.lat.toFixed(3)}, {location.lng.toFixed(3)}
+            </p>
+          </div>
+          <button
+            className="share-pin-btn"
+            onClick={onSharePin}
+            title="Copy shareable link"
+          >
+            <span className="share-pin-icon">🔗</span>
+            <span className="share-pin-label">Share</span>
+          </button>
+        </div>
       </div>
 
       <div className="result-divider" />
@@ -120,7 +152,12 @@ function ResultContent({ result, searchCenter, searchRadius, onCenterChange, onR
         {restaurants.length > 0 ? (
           <div className="restaurant-list">
             {restaurants.map((restaurant, i) => (
-              <RestaurantCard key={`${restaurant.name}-${i}`} restaurant={restaurant} index={i} />
+              <RestaurantCard
+                key={`${restaurant.name}-${i}`}
+                restaurant={restaurant}
+                index={i}
+                searchCenter={searchCenter}
+              />
             ))}
           </div>
         ) : (
@@ -135,31 +172,49 @@ function ResultContent({ result, searchCenter, searchRadius, onCenterChange, onR
   )
 }
 
-function RestaurantCard({ restaurant, index }) {
+function RestaurantCard({ restaurant, index, searchCenter }) {
   const badges = getBadges(restaurant.name)
   const hasBadges = badges.length > 0
 
+  // Compute distance from search center if coordinates are available
+  let distanceLabel = null
+  if (restaurant.lat && restaurant.lon && searchCenter) {
+    const km = haversineKm(searchCenter.lat, searchCenter.lng, restaurant.lat, restaurant.lon)
+    distanceLabel = km < 1
+      ? `${Math.round(km * 1000)} m away`
+      : `${km.toFixed(1)} km away`
+  }
+
   return (
-    <div className={`restaurant-card ${hasBadges ? 'restaurant-card--featured' : ''}`}>
+    <div
+      className={`restaurant-card ${hasBadges ? 'restaurant-card--featured' : ''}`}
+      style={{ animationDelay: `${index * 60}ms` }}
+    >
+      <div className="restaurant-card-accent" />
       <div className="restaurant-info">
         <div className="restaurant-header">
           <div className="restaurant-name-row">
             <span className="restaurant-rank">#{index + 1}</span>
             <h4 className="restaurant-name">{restaurant.name}</h4>
           </div>
-          {hasBadges && (
-            <div className="restaurant-badges">
-              {badges.map((badge) => (
-                <span
-                  key={badge.key}
-                  className="badge"
-                  style={{ backgroundColor: badge.color }}
-                >
-                  {badge.label}
-                </span>
-              ))}
-            </div>
-          )}
+          <div className="restaurant-header-right">
+            {distanceLabel && (
+              <span className="restaurant-distance">{distanceLabel}</span>
+            )}
+            {hasBadges && (
+              <div className="restaurant-badges">
+                {badges.map((badge) => (
+                  <span
+                    key={badge.key}
+                    className="badge"
+                    style={{ backgroundColor: badge.color }}
+                  >
+                    {badge.label}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="restaurant-meta">
