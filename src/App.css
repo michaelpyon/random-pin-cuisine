@@ -142,13 +142,21 @@
   white-space: nowrap;
 }
 
-/* Random Pin Button */
-.random-pin-btn {
+/* Random Pin Button wrapper */
+.random-pin-wrapper {
   position: absolute;
   bottom: 32px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Random Pin Button */
+.random-pin-btn {
   padding: 14px 32px;
   font-size: 1rem;
   font-weight: 600;
@@ -160,22 +168,144 @@
   cursor: pointer;
   box-shadow: 0 4px 20px var(--accent-glow), 0 2px 8px rgba(0, 0, 0, 0.3);
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .random-pin-btn:hover {
   background: var(--accent-hover);
-  transform: translateX(-50%) translateY(-2px);
+  transform: translateY(-2px);
   box-shadow: 0 6px 28px var(--accent-glow), 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .random-pin-btn:active {
-  transform: translateX(-50%) translateY(0);
+  transform: translateY(0);
 }
 
 .random-pin-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+  transform: none;
+}
+
+/* Keyboard hint under the random pin button */
+.random-pin-kbd {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.35);
+  letter-spacing: 0.06em;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ── Pin History Strip ──────────────────────────────────────────────────── */
+.pin-history-strip {
+  position: absolute;
+  bottom: 104px;
+  left: 50%;
   transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: calc(100vw - 32px);
+  animation: hint-fade-in 0.4s ease-out;
+}
+
+.pin-history-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.pin-history-pills {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  flex: 1;
+  max-width: 100%;
+}
+
+.pin-history-pills::-webkit-scrollbar {
+  display: none;
+}
+
+.pin-history-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  background: rgba(15, 17, 23, 0.82);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(249, 115, 22, 0.22);
+  border-radius: 50px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  transition: all 0.18s ease;
+  flex-shrink: 0;
+}
+
+.pin-history-pill:hover {
+  background: rgba(249, 115, 22, 0.15);
+  border-color: rgba(249, 115, 22, 0.5);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
+.pin-history-pill:active {
+  transform: translateY(0);
+}
+
+.pill-emoji {
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.pill-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  text-align: left;
+}
+
+.pill-time {
+  font-size: 0.62rem;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+.pin-history-clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: rgba(15, 17, 23, 0.8);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  cursor: pointer;
+  font-family: inherit;
+  flex-shrink: 0;
+  transition: all 0.15s;
+  padding: 0;
+  line-height: 1;
+}
+
+.pin-history-clear:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #ef4444;
 }
 
 /* Results Panel */
@@ -226,12 +356,30 @@
   font-family: inherit;
   z-index: 10;
   transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
 .results-close:hover {
   color: var(--text-primary);
   background: rgba(255, 255, 255, 0.1);
   border-color: var(--text-muted);
+}
+
+/* Keyboard hint next to the × close button */
+.close-kbd-hint {
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  opacity: 0.7;
+  padding: 1px 4px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  line-height: 1.4;
 }
 
 /* Loading State */
@@ -768,8 +916,13 @@
     transform: translateX(0);
   }
 
-  .random-pin-btn {
+  .random-pin-wrapper {
     bottom: 32px;
+  }
+
+  /* On desktop with history strip, keep it readable */
+  .pin-history-strip {
+    bottom: 112px;
   }
 }
 

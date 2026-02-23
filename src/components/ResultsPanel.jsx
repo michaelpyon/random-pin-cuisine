@@ -10,8 +10,9 @@ export default function ResultsPanel({ result, loading, error, onClose, onShareP
       {/* Mobile drag handle */}
       <div className="panel-drag-handle" />
 
-      <button className="results-close" onClick={onClose} aria-label="Close">
+      <button className="results-close" onClick={onClose} aria-label="Close" title="Close (Esc)">
         &times;
+        <span className="close-kbd-hint">Esc</span>
       </button>
 
       {/* Share toast */}

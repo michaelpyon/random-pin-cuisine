@@ -1,9 +1,11 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import WorldMap from './components/WorldMap'
 import ResultsPanel from './components/ResultsPanel'
+import PinHistory from './components/PinHistory'
 import { reverseGeocode, isOcean, isAntarctica, getRandomLandCoords } from './utils/geocode'
 import { classifyCuisine } from './utils/claude'
 import { findNYCRestaurants } from './utils/yelp'
+import { getPinHistory, addPinToHistory, clearPinHistory } from './utils/pinHistory'
 import './App.css'
 
 const NYC_CENTER = { lat: 40.7580, lng: -73.9855 }
@@ -24,6 +26,7 @@ export default function App() {
   const [searchCenter, setSearchCenter] = useState(NYC_CENTER)
   const [searchRadius, setSearchRadius] = useState(DEFAULT_RADIUS)
   const [shareToast, setShareToast] = useState(false)
+  const [pinHistory, setPinHistory] = useState(() => getPinHistory())
 
   // Keep a ref to the latest cuisine so re-searches can use it
   const lastCuisineRef = useRef(null)
@@ -73,6 +76,21 @@ export default function App() {
       lastCuisineRef.current = cuisineInfo
 
       const restaurants = await searchRestaurants(cuisineInfo, searchCenter, searchRadius)
+
+      // Save to pin history
+      const neighborhood =
+        locationInfo.city ||
+        locationInfo.county ||
+        locationInfo.state ||
+        locationInfo.country ||
+        'Unknown'
+      const updated = addPinToHistory({
+        lat,
+        lng,
+        cuisineType: cuisineInfo.cuisineType,
+        neighborhood,
+      })
+      setPinHistory(updated)
 
       setResult({
         location: { ...locationInfo, lat, lng },
@@ -160,6 +178,32 @@ export default function App() {
     }
   }, [searchCenter, result, searchRestaurants])
 
+  const handleHistoryClear = useCallback(() => {
+    const cleared = clearPinHistory()
+    setPinHistory(cleared)
+  }, [])
+
+  const handleHistorySelect = useCallback((lat, lng) => {
+    processPin(lat, lng)
+  }, [processPin])
+
+  // ── Keyboard shortcuts ──────────────────────────────────────────────────────
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Don't fire while typing in an input/textarea
+      const tag = document.activeElement?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
+
+      if ((e.key === 'r' || e.key === 'R') && !e.metaKey && !e.ctrlKey) {
+        if (!loading) handleRandomPin()
+      } else if (e.key === 'Escape') {
+        if (result || error || loading) handleClose()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [loading, result, error, handleRandomPin, handleClose])
+
   // On mount: check URL for ?lat=&lng= to auto-load a shared pin
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -190,9 +234,25 @@ export default function App() {
           </div>
         )}
 
-        <button className="random-pin-btn" onClick={handleRandomPin} disabled={loading}>
-          {loading ? '...' : '🎲 Random Pin'}
-        </button>
+        {/* Pin History strip — floats above the Random Pin button */}
+        <PinHistory
+          pins={pinHistory}
+          onSelect={handleHistorySelect}
+          onClear={handleHistoryClear}
+        />
+
+        {/* Random Pin button with [R] keyboard hint */}
+        <div className="random-pin-wrapper">
+          <button
+            className="random-pin-btn"
+            onClick={handleRandomPin}
+            disabled={loading}
+            title="Random Pin (press R)"
+          >
+            {loading ? '...' : '🎲 Random Pin'}
+          </button>
+          {!loading && <span className="random-pin-kbd">[R]</span>}
+        </div>
       </div>
 
       <ResultsPanel
