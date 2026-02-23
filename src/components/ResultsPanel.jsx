@@ -74,7 +74,7 @@ function ResultContent({ result, searchCenter, searchRadius, onCenterChange, onR
   return (
     <div className="result-content result-slide-in">
       <div className="result-section location-section">
-        <h3 className="section-label">Pin dropped near</h3>
+        <h3 className="section-label">🌍 Pin dropped near</h3>
         <p className="location-name">{location.displayName}</p>
         <p className="coordinates">
           {location.lat.toFixed(3)}, {location.lng.toFixed(3)}
@@ -84,7 +84,7 @@ function ResultContent({ result, searchCenter, searchRadius, onCenterChange, onR
       <div className="result-divider" />
 
       <div className="result-section cuisine-section">
-        <h3 className="section-label">Local cuisine</h3>
+        <h3 className="section-label">🍽️ Local cuisine</h3>
         <p className="cuisine-type">{cuisine.cuisineType}</p>
         <p className="cuisine-desc">{cuisine.description}</p>
       </div>
@@ -104,7 +104,7 @@ function ResultContent({ result, searchCenter, searchRadius, onCenterChange, onR
 
       <div className="result-section restaurant-section">
         <h3 className="section-label">
-          NYC matches
+          🗽 NYC matches
           {restaurants.length > 0 && (
             <span className="match-count"> ({restaurants.length})</span>
           )}
@@ -112,28 +112,34 @@ function ResultContent({ result, searchCenter, searchRadius, onCenterChange, onR
         {restaurants.length > 0 ? (
           <div className="restaurant-list">
             {restaurants.map((restaurant, i) => (
-              <RestaurantCard key={`${restaurant.name}-${i}`} restaurant={restaurant} />
+              <RestaurantCard key={`${restaurant.name}-${i}`} restaurant={restaurant} index={i} />
             ))}
           </div>
         ) : (
-          <p className="no-match">
-            Couldn't find a matching NYC restaurant in this area. Try expanding your search radius!
-          </p>
+          <div className="no-match-box">
+            <p className="no-match-emoji">🔍</p>
+            <p className="no-match">No matches in this area.</p>
+            <p className="no-match-hint">Try expanding the search radius below.</p>
+          </div>
         )}
       </div>
     </div>
   )
 }
 
-function RestaurantCard({ restaurant }) {
+function RestaurantCard({ restaurant, index }) {
   const badges = getBadges(restaurant.name)
+  const hasBadges = badges.length > 0
 
   return (
-    <div className="restaurant-card">
+    <div className={`restaurant-card ${hasBadges ? 'restaurant-card--featured' : ''}`}>
       <div className="restaurant-info">
         <div className="restaurant-header">
-          <h4 className="restaurant-name">{restaurant.name}</h4>
-          {badges.length > 0 && (
+          <div className="restaurant-name-row">
+            <span className="restaurant-rank">#{index + 1}</span>
+            <h4 className="restaurant-name">{restaurant.name}</h4>
+          </div>
+          {hasBadges && (
             <div className="restaurant-badges">
               {badges.map((badge) => (
                 <span
@@ -148,27 +154,27 @@ function RestaurantCard({ restaurant }) {
           )}
         </div>
 
-        {restaurant.cuisine.length > 0 && (
-          <p className="restaurant-categories">
-            {restaurant.cuisine.join(' · ')}
-          </p>
-        )}
+        <div className="restaurant-meta">
+          {restaurant.cuisine.length > 0 && (
+            <p className="restaurant-categories">
+              {restaurant.cuisine.join(' · ')}
+            </p>
+          )}
 
-        {restaurant.neighborhood && (
-          <p className="restaurant-neighborhood">{restaurant.neighborhood}</p>
-        )}
+          {(restaurant.neighborhood || restaurant.address) && (
+            <p className="restaurant-location">
+              📍 {[restaurant.neighborhood, restaurant.address].filter(Boolean).join(', ')}
+            </p>
+          )}
 
-        {restaurant.address && (
-          <p className="restaurant-address">{restaurant.address}</p>
-        )}
+          {restaurant.phone && (
+            <p className="restaurant-phone">📞 {restaurant.phone}</p>
+          )}
 
-        {restaurant.phone && (
-          <p className="restaurant-phone">{restaurant.phone}</p>
-        )}
-
-        {restaurant.openingHours && (
-          <p className="restaurant-hours">{restaurant.openingHours}</p>
-        )}
+          {restaurant.openingHours && (
+            <p className="restaurant-hours">🕐 {restaurant.openingHours}</p>
+          )}
+        </div>
 
         <div className="restaurant-links">
           {restaurant.googleMapsLink && (
@@ -176,9 +182,9 @@ function RestaurantCard({ restaurant }) {
               href={restaurant.googleMapsLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="map-link"
+              className="restaurant-link-btn"
             >
-              Google Maps &rarr;
+              Maps
             </a>
           )}
           {restaurant.website && (
@@ -186,18 +192,18 @@ function RestaurantCard({ restaurant }) {
               href={restaurant.website}
               target="_blank"
               rel="noopener noreferrer"
-              className="website-link"
+              className="restaurant-link-btn"
             >
-              Website &rarr;
+              Website
             </a>
           )}
           <a
             href={restaurant.osmLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="osm-link"
+            className="restaurant-link-btn restaurant-link-btn--secondary"
           >
-            OpenStreetMap &rarr;
+            OSM
           </a>
         </div>
       </div>

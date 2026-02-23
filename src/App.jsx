@@ -136,16 +136,24 @@ export default function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1 className="app-title">Random Pin Cuisine Finder</h1>
+        <h1 className="app-title">📍 Random Pin Cuisine Finder</h1>
         <p className="app-subtitle">
-          Click anywhere on the map or drop a random pin to discover world cuisines — and where to eat them in NYC
+          Drop a pin anywhere on Earth — discover the local cuisine &amp; find it in NYC
         </p>
       </header>
 
       <div className="map-container">
         <WorldMap pin={pin} onMapClick={handleMapClick} />
-        <button className="random-pin-btn" onClick={handleRandomPin}>
-          Random Pin
+
+        {!pin && !loading && (
+          <div className="map-hint">
+            <span className="map-hint-pulse" />
+            <span className="map-hint-text">Click anywhere to explore</span>
+          </div>
+        )}
+
+        <button className="random-pin-btn" onClick={handleRandomPin} disabled={loading}>
+          {loading ? '...' : '🎲 Random Pin'}
         </button>
       </div>
 

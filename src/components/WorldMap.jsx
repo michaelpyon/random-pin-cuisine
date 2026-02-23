@@ -3,15 +3,22 @@ import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-lea
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
-// Fix default marker icon
-const pinIcon = new L.Icon({
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
+// Custom branded orange pin icon
+const pinIcon = new L.DivIcon({
+  className: 'custom-pin-icon',
+  html: `<svg width="30" height="42" viewBox="0 0 30 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <filter id="pin-shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#000" flood-opacity="0.4"/>
+    </filter>
+    <g filter="url(#pin-shadow)">
+      <path d="M15 1C7.268 1 1 7.268 1 15C1 22 8 31 13 38C13.8 39.2 15 41 15 41C15 41 16.2 39.2 17 38C22 31 29 22 29 15C29 7.268 22.732 1 15 1Z" fill="#f97316"/>
+      <path d="M15 1C7.268 1 1 7.268 1 15C1 22 8 31 13 38C13.8 39.2 15 41 15 41C15 41 16.2 39.2 17 38C22 31 29 22 29 15C29 7.268 22.732 1 15 1Z" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
+      <circle cx="15" cy="15" r="6.5" fill="white" opacity="0.9"/>
+    </g>
+  </svg>`,
+  iconSize: [30, 42],
+  iconAnchor: [15, 42],
+  popupAnchor: [0, -44],
 })
 
 function MapClickHandler({ onMapClick }) {
