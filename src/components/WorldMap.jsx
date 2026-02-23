@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, ZoomControl, useMapEvents, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
@@ -48,13 +48,14 @@ export default function WorldMap({ pin, onMapClick }) {
       minZoom={2}
       maxZoom={12}
       className="world-map"
-      zoomControl={true}
+      zoomControl={false}
       attributionControl={false}
     >
       <TileLayer
         url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
       />
+      <ZoomControl position="bottomright" />
       <MapClickHandler onMapClick={onMapClick} />
       {pin && (
         <>

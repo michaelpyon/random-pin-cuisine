@@ -90,9 +90,10 @@
   color: var(--accent) !important;
 }
 
-.leaflet-top.leaflet-right {
-  top: auto !important;
-  bottom: 80px !important;
+/* Zoom controls positioned bottom-right */
+.leaflet-bottom.leaflet-right {
+  bottom: 100px !important;
+  right: 12px !important;
 }
 
 /* Map click hint */
