@@ -48,7 +48,7 @@ export default function WorldMap({ pin, onMapClick }) {
       minZoom={2}
       maxZoom={12}
       className="world-map"
-      zoomControl={false}
+      zoomControl={true}
       attributionControl={false}
     >
       <TileLayer

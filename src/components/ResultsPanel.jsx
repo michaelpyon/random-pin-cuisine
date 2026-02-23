@@ -7,6 +7,9 @@ export default function ResultsPanel({ result, loading, error, onClose, searchCe
 
   return (
     <div className={`results-panel ${loading || result || error ? 'open' : ''}`}>
+      {/* Mobile drag handle */}
+      <div className="panel-drag-handle" />
+
       <button className="results-close" onClick={onClose} aria-label="Close">
         &times;
       </button>
@@ -45,13 +48,16 @@ function LoadingState() {
   useEffect(() => {
     const interval = setInterval(() => {
       setMsgIndex(i => (i + 1) % LOADING_MESSAGES.length)
-    }, 2000)
+    }, 2200)
     return () => clearInterval(interval)
   }, [])
 
   return (
     <div className="loading-state">
-      <div className="loading-spinner" />
+      <div className="loading-ring">
+        <div className="loading-ring-inner" />
+        <span className="loading-ring-emoji">🍽️</span>
+      </div>
       <p className="loading-message" key={msgIndex} style={{ animation: 'fade-msg 0.4s ease-in' }}>
         {LOADING_MESSAGES[msgIndex]}
       </p>
@@ -85,7 +91,9 @@ function ResultContent({ result, searchCenter, searchRadius, onCenterChange, onR
 
       <div className="result-section cuisine-section">
         <h3 className="section-label">🍽️ Local cuisine</h3>
-        <p className="cuisine-type">{cuisine.cuisineType}</p>
+        <div className="cuisine-hero">
+          <p className="cuisine-type">{cuisine.cuisineType}</p>
+        </div>
         <p className="cuisine-desc">{cuisine.description}</p>
       </div>
 
