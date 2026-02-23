@@ -88,6 +88,23 @@ async function queryOverpassByNameRadius(searchTerm, center, radius) {
   }
 }
 
+function parseStars(tags) {
+  // Check known OSM rating tags in order of preference
+  const raw =
+    tags['stars'] ||
+    tags['rating'] ||
+    tags['cuisine:stars'] ||
+    tags['michelin:stars'] ||
+    tags['survey:stars'] ||
+    null
+
+  if (!raw) return null
+
+  const parsed = parseFloat(raw)
+  if (isNaN(parsed)) return null
+  return Math.min(5, Math.max(0, parsed))
+}
+
 function formatRestaurant(element) {
   const tags = element.tags || {}
   const lat = element.lat || element.center?.lat
@@ -112,6 +129,8 @@ function formatRestaurant(element) {
       )
     : []
 
+  const stars = parseStars(tags)
+
   return {
     name: tags.name,
     cuisine: cuisine,
@@ -120,6 +139,7 @@ function formatRestaurant(element) {
     phone: tags.phone || tags['contact:phone'] || null,
     website: tags.website || tags['contact:website'] || null,
     openingHours: tags.opening_hours || null,
+    stars,
     lat,
     lon,
     osmLink: `https://www.openstreetmap.org/${element.type}/${element.id}`,

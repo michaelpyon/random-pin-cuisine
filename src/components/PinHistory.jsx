@@ -9,7 +9,14 @@ export default function PinHistory({ pins, onSelect, onClear }) {
     return () => clearInterval(id)
   }, [])
 
-  if (!pins || pins.length === 0) return null
+  // Empty state — ghost placeholder so the feature is discoverable on first visit
+  if (!pins || pins.length === 0) {
+    return (
+      <div className="pin-history-strip pin-history-strip--empty" aria-label="Recent pins (empty)">
+        <span className="pin-history-ghost">📍 Your recent pins will appear here</span>
+      </div>
+    )
+  }
 
   return (
     <div className="pin-history-strip" role="navigation" aria-label="Recent pins">
