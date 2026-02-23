@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef } from 'react'
 import { MapContainer, TileLayer, Circle, Marker, useMap, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -81,34 +81,12 @@ const RADIUS_PRESETS = [
   { label: '10 km', value: 10000 },
 ]
 
-export default function NYCMiniMap({ center, radius, onCenterChange, onRadiusChange, onSearch }) {
-  const [localCenter, setLocalCenter] = useState(center || NYC_CENTER)
-  const [localRadius, setLocalRadius] = useState(radius || 5000)
-
-  useEffect(() => {
-    if (center) setLocalCenter(center)
-  }, [center])
-
-  useEffect(() => {
-    if (radius) setLocalRadius(radius)
-  }, [radius])
-
-  const handleCenterChange = useCallback((newCenter) => {
-    setLocalCenter(newCenter)
-    onCenterChange?.(newCenter)
-  }, [onCenterChange])
-
-  const handleRadiusChange = useCallback((newRadius) => {
-    setLocalRadius(newRadius)
-    onRadiusChange?.(newRadius)
-  }, [onRadiusChange])
-
-  const handlePresetClick = useCallback((value) => {
-    setLocalRadius(value)
-    onRadiusChange?.(value)
-  }, [onRadiusChange])
-
-  const radiusKm = (localRadius / 1000).toFixed(1)
+export default function NYCMiniMap({ center, radius, onCenterChange, onRadiusChange }) {
+  // Fully controlled component — no local mirror state.
+  // Parent owns center/radius; this component reports changes up via callbacks.
+  const activeCenter = center || NYC_CENTER
+  const activeRadius = radius || 5000
+  const radiusKm = (activeRadius / 1000).toFixed(1)
 
   return (
     <div className="nyc-minimap">
@@ -119,7 +97,7 @@ export default function NYCMiniMap({ center, radius, onCenterChange, onRadiusCha
 
       <div className="minimap-container">
         <MapContainer
-          center={[localCenter.lat, localCenter.lng]}
+          center={[activeCenter.lat, activeCenter.lng]}
           zoom={12}
           className="minimap-leaflet"
           zoomControl={false}
@@ -130,8 +108,8 @@ export default function NYCMiniMap({ center, radius, onCenterChange, onRadiusCha
             url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
           />
           <Circle
-            center={[localCenter.lat, localCenter.lng]}
-            radius={localRadius}
+            center={[activeCenter.lat, activeCenter.lng]}
+            radius={activeRadius}
             pathOptions={{
               color: '#f97316',
               fillColor: '#f97316',
@@ -139,9 +117,9 @@ export default function NYCMiniMap({ center, radius, onCenterChange, onRadiusCha
               weight: 2,
             }}
           />
-          <DraggableCenter center={localCenter} onCenterChange={handleCenterChange} />
-          <RadiusController center={localCenter} radius={localRadius} onRadiusChange={handleRadiusChange} />
-          <FitToRadius center={localCenter} radius={localRadius} />
+          <DraggableCenter center={activeCenter} onCenterChange={onCenterChange} />
+          <RadiusController center={activeCenter} radius={activeRadius} onRadiusChange={onRadiusChange} />
+          <FitToRadius center={activeCenter} radius={activeRadius} />
         </MapContainer>
       </div>
 
@@ -149,8 +127,8 @@ export default function NYCMiniMap({ center, radius, onCenterChange, onRadiusCha
         {RADIUS_PRESETS.map((preset) => (
           <button
             key={preset.value}
-            className={`preset-btn ${localRadius === preset.value ? 'active' : ''}`}
-            onClick={() => handlePresetClick(preset.value)}
+            className={`preset-btn ${activeRadius === preset.value ? 'active' : ''}`}
+            onClick={() => onRadiusChange?.(preset.value)}
           >
             {preset.label}
           </button>
