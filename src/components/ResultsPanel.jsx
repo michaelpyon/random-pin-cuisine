@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { getBadges } from '../utils/badges'
 import NYCMiniMap from './NYCMiniMap'
 
@@ -25,20 +26,34 @@ export default function ResultsPanel({ result, loading, error, onClose, searchCe
   )
 }
 
+const LOADING_MESSAGES = [
+  'Consulting the bodega cats...',
+  'Asking a well-traveled cab driver...',
+  'Bribing the pizza rats for intel...',
+  'Checking with the subway pigeons...',
+  'Interrogating a street cart vendor...',
+  'Waking up a sleeping sommelier...',
+  'Dropping pin on the globe...',
+  'Decoding local cuisine signals...',
+  'Scouring NYC for a match...',
+  'Almost there, stay hungry...',
+]
+
 function LoadingState() {
-  const messages = [
-    'Dropping pin on the globe...',
-    'Interpreting local cuisine...',
-    'Asking a well-traveled foodie...',
-    'Scouring NYC for a match...',
-    'Almost there, stay hungry...',
-  ]
+  const [msgIndex, setMsgIndex] = useState(() => Math.floor(Math.random() * LOADING_MESSAGES.length))
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setMsgIndex(i => (i + 1) % LOADING_MESSAGES.length)
+    }, 2000)
+    return () => clearInterval(interval)
+  }, [])
 
   return (
     <div className="loading-state">
       <div className="loading-spinner" />
-      <p className="loading-message">
-        {messages[Math.floor(Math.random() * messages.length)]}
+      <p className="loading-message" key={msgIndex} style={{ animation: 'fade-msg 0.4s ease-in' }}>
+        {LOADING_MESSAGES[msgIndex]}
       </p>
     </div>
   )
@@ -57,7 +72,7 @@ function ResultContent({ result, searchCenter, searchRadius, onCenterChange, onR
   const { location, cuisine, restaurants } = result
 
   return (
-    <div className="result-content">
+    <div className="result-content result-slide-in">
       <div className="result-section location-section">
         <h3 className="section-label">Pin dropped near</h3>
         <p className="location-name">{location.displayName}</p>

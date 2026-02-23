@@ -48,3 +48,16 @@ a {
 a:hover {
   color: var(--accent-hover);
 }
+
+/* Loading message fade + results slide-in */
+@keyframes fade-msg {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slide-in-results {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.result-slide-in {
+  animation: slide-in-results 0.3s ease-out;
+}
