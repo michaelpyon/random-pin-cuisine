@@ -35,10 +35,6 @@ function toCache(key, data) {
   } catch {}
 }
 
-function sleep(ms) {
-  return new Promise((r) => setTimeout(r, ms))
-}
-
 /**
  * Poll until window.google.maps.places.PlacesService is available,
  * or reject after maxMs. Handles async script loading gracefully.
@@ -111,7 +107,7 @@ function fetchOnePlaceData(service, name, lat, lon) {
 /**
  * Enrich an array of restaurants with Google Places rating/review/price data.
  *
- * - Processes restaurants SEQUENTIALLY with a 200ms delay between calls.
+ * - Processes restaurants IN PARALLEL (up to 5 at a time) for speed.
  * - Caches each result in sessionStorage; cached entries are free (no API call).
  * - If the Google Maps API fails to load, returns restaurants unchanged.
  */
@@ -126,30 +122,21 @@ export async function enrichWithGooglePlaces(restaurants) {
   }
 
   const service = getService()
-  const enriched = []
 
-  for (const r of restaurants) {
-    // Skip entries without coordinates (can't apply a location bias)
-    if (r.lat == null || r.lon == null) {
-      enriched.push(r)
-      continue
-    }
+  // Enrich all restaurants in parallel (PlacesService handles its own queueing)
+  const results = await Promise.allSettled(
+    restaurants.map(async (r) => {
+      if (r.lat == null || r.lon == null) return r
+      const key = cacheKey(r.name, r.lat, r.lon)
+      const cached = fromCache(key)
+      if (cached) return { ...r, ...cached }
+      const placeData = await fetchOnePlaceData(service, r.name, r.lat, r.lon)
+      toCache(key, placeData)
+      return { ...r, ...placeData }
+    })
+  )
 
-    const key = cacheKey(r.name, r.lat, r.lon)
-    const cached = fromCache(key)
-
-    if (cached) {
-      enriched.push({ ...r, ...cached })
-      continue // cache hit — no delay needed
-    }
-
-    const placeData = await fetchOnePlaceData(service, r.name, r.lat, r.lon)
-    toCache(key, placeData)
-    enriched.push({ ...r, ...placeData })
-
-    // 200ms rate-limit between live API calls
-    await sleep(200)
-  }
-
-  return enriched
+  return results.map((res, i) =>
+    res.status === 'fulfilled' ? res.value : restaurants[i]
+  )
 }

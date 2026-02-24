@@ -172,7 +172,7 @@ function haversineKm(lat1, lon1, lat2, lon2) {
 }
 
 function ResultContent({ result, onSharePin, searchCenter, searchRadius, onCenterChange, onRadiusChange, onReposition }) {
-  const { location, cuisine, restaurants } = result
+  const { location, cuisine, restaurants, enriching } = result
 
   // ── Favorites state ─────────────────────────────────────────────────────────
   const [favorites, setFavorites] = useState(loadFavorites)
@@ -299,6 +299,11 @@ function ResultContent({ result, onSharePin, searchCenter, searchRadius, onCente
             🗽 NYC matches
             {restaurants.length > 0 && (
               <span className="match-count"> ({restaurants.length})</span>
+            )}
+            {enriching && (
+              <span className="enriching-badge" title="Loading ratings from Google Places…">
+                · loading ratings…
+              </span>
             )}
           </h3>
           <div className="restaurant-tabs">

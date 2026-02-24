@@ -4,7 +4,7 @@ import ResultsPanel from './components/ResultsPanel'
 import PinHistory from './components/PinHistory'
 import { reverseGeocode, isOcean, isAntarctica, getRandomLandCoords } from './utils/geocode'
 import { classifyCuisine } from './utils/claude'
-import { findNYCRestaurants } from './utils/yelp'
+import { findNYCRestaurants, enrichRestaurants } from './utils/yelp'
 import { getPinHistory, addPinToHistory, clearPinHistory } from './utils/pinHistory'
 import './App.css'
 
@@ -101,11 +101,25 @@ export default function App() {
       })
       setPinHistory(updated)
 
-      setResult({
+      // Show results IMMEDIATELY (no ratings yet — enriching happens in background)
+      const immediateResult = {
         location: { ...locationInfo, lat, lng },
         cuisine: cuisineInfo,
         restaurants,
-      })
+        enriching: restaurants.length > 0,
+      }
+      setResult(immediateResult)
+
+      // Kick off background enrichment WITHOUT awaiting (non-blocking)
+      if (restaurants.length > 0) {
+        enrichRestaurants(restaurants).then((enriched) => {
+          setResult((prev) =>
+            prev ? { ...prev, restaurants: enriched, enriching: false } : null
+          )
+        }).catch(() => {
+          setResult((prev) => prev ? { ...prev, enriching: false } : null)
+        })
+      }
     } catch (err) {
       console.error('Pipeline error:', err)
       setError(`Something went wrong: ${err.message}`)
@@ -180,17 +194,24 @@ export default function App() {
     toastTimerRef.current = setTimeout(() => setShareToast(false), 2500)
   }, [result])
 
-  // Re-search with new center/radius
+  // Re-search with new center/radius (progressive: show then enrich)
   const handleCenterChange = useCallback(async (newCenter) => {
     setSearchCenter(newCenter)
     if (lastCuisineRef.current && result) {
       setLoading(true)
       try {
         const restaurants = await searchRestaurants(lastCuisineRef.current, newCenter, searchRadius)
-        setResult((prev) => prev ? { ...prev, restaurants } : null)
+        setResult((prev) => prev ? { ...prev, restaurants, enriching: restaurants.length > 0 } : null)
+        setLoading(false)
+        if (restaurants.length > 0) {
+          enrichRestaurants(restaurants).then((enriched) => {
+            setResult((prev) => prev ? { ...prev, restaurants: enriched, enriching: false } : null)
+          }).catch(() => {
+            setResult((prev) => prev ? { ...prev, enriching: false } : null)
+          })
+        }
       } catch (err) {
         console.error('Re-search error:', err)
-      } finally {
         setLoading(false)
       }
     }
@@ -202,10 +223,17 @@ export default function App() {
       setLoading(true)
       try {
         const restaurants = await searchRestaurants(lastCuisineRef.current, searchCenter, newRadius)
-        setResult((prev) => prev ? { ...prev, restaurants } : null)
+        setResult((prev) => prev ? { ...prev, restaurants, enriching: restaurants.length > 0 } : null)
+        setLoading(false)
+        if (restaurants.length > 0) {
+          enrichRestaurants(restaurants).then((enriched) => {
+            setResult((prev) => prev ? { ...prev, restaurants: enriched, enriching: false } : null)
+          }).catch(() => {
+            setResult((prev) => prev ? { ...prev, enriching: false } : null)
+          })
+        }
       } catch (err) {
         console.error('Re-search error:', err)
-      } finally {
         setLoading(false)
       }
     }

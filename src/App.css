@@ -778,6 +778,20 @@
   font-weight: 600;
 }
 
+/* Enriching indicator — shows while Google Places ratings are loading */
+.enriching-badge {
+  font-size: 0.7rem;
+  font-weight: 400;
+  color: var(--text-muted);
+  margin-left: 4px;
+  animation: pulse-opacity 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse-opacity {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
 /* NYC Mini Map */
 .nyc-minimap {
   display: flex;

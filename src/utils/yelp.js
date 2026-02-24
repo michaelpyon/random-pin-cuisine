@@ -30,10 +30,18 @@ export async function findNYCRestaurants(cuisineInfo, { center, radiusMeters } =
     return []
   }
 
-  // Shuffle, format, then enrich with Google Places ratings
+  // Shuffle and format — return unenriched; caller can enrich in the background
   const shuffled = results.sort(() => Math.random() - 0.5)
   const formatted = shuffled.slice(0, 10).map(formatRestaurant)
-  return enrichWithGooglePlaces(formatted)
+  return formatted
+}
+
+/**
+ * Enriches a list of formatted restaurants with Google Places ratings.
+ * Exported separately so App.jsx can call it after displaying results.
+ */
+export async function enrichRestaurants(restaurants) {
+  return enrichWithGooglePlaces(restaurants)
 }
 
 async function queryOverpassRadius(cuisineTag, center, radius) {
