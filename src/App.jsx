@@ -259,9 +259,9 @@ export default function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1 className="app-title">📍 Random Pin Cuisine Finder</h1>
+        <h1 className="app-title">📍 Random Pin</h1>
         <p className="app-subtitle">
-          Drop a pin anywhere on Earth — discover the local cuisine &amp; find it in NYC
+          Drop a pin anywhere. Find that cuisine in NYC.
         </p>
       </header>
 
