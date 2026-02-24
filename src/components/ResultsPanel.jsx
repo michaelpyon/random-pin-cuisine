@@ -72,7 +72,7 @@ function RatingDisplay({ googleRating, googleReviewCount, googlePriceLevel, osmS
 }
 
 // ── Main panel ────────────────────────────────────────────────────────────────
-export default function ResultsPanel({ result, loading, error, onClose, onSharePin, shareToast, searchCenter, searchRadius, onCenterChange, onRadiusChange, onReposition }) {
+export default function ResultsPanel({ result, loading, error, onClose, onSharePin, shareToast, searchCenter, searchRadius, onSearchArea, onReposition }) {
   if (!loading && !result && !error) return null
 
   return (
@@ -100,8 +100,7 @@ export default function ResultsPanel({ result, loading, error, onClose, onShareP
           onSharePin={onSharePin}
           searchCenter={searchCenter}
           searchRadius={searchRadius}
-          onCenterChange={onCenterChange}
-          onRadiusChange={onRadiusChange}
+          onSearchArea={onSearchArea}
           onReposition={onReposition}
         />
       )}
@@ -171,7 +170,7 @@ function haversineKm(lat1, lon1, lat2, lon2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 }
 
-function ResultContent({ result, onSharePin, searchCenter, searchRadius, onCenterChange, onRadiusChange, onReposition }) {
+function ResultContent({ result, onSharePin, searchCenter, searchRadius, onSearchArea, onReposition }) {
   const { location, cuisine, restaurants, enriching } = result
 
   // ── Favorites state ─────────────────────────────────────────────────────────
@@ -292,6 +291,21 @@ function ResultContent({ result, onSharePin, searchCenter, searchRadius, onCente
 
       <div className="result-divider" />
 
+      {/* NYC Search Area — at the TOP so users see & adjust BEFORE viewing results */}
+      <div className="result-section minimap-section">
+        <p className="minimap-context-hint">
+          Adjust where in NYC to search for <strong>{cuisine.cuisineType}</strong> restaurants:
+        </p>
+        <NYCMiniMap
+          center={searchCenter}
+          radius={searchRadius}
+          cuisineType={cuisine.cuisineType}
+          onSearchArea={onSearchArea}
+        />
+      </div>
+
+      <div className="result-divider" />
+
       <div className="result-section restaurant-section">
         {/* Header row: title + tabs */}
         <div className="restaurant-header-row">
@@ -397,24 +411,11 @@ function ResultContent({ result, onSharePin, searchCenter, searchRadius, onCente
           <div className="no-match-box">
             <p className="no-match-emoji">🔍</p>
             <p className="no-match">No restaurants found in this area.</p>
-            <p className="no-match-hint">Try expanding the search radius using the NYC map below.</p>
+            <p className="no-match-hint">Try expanding the search radius using the NYC Search Area above, then click Search This Area.</p>
           </div>
         )}
       </div>
 
-      <div className="result-divider" />
-
-      <div className="result-section minimap-section">
-        <p className="minimap-context-hint">
-          Adjust where in NYC to search for <strong>{cuisine.cuisineType}</strong> restaurants:
-        </p>
-        <NYCMiniMap
-          center={searchCenter}
-          radius={searchRadius}
-          onCenterChange={onCenterChange}
-          onRadiusChange={onRadiusChange}
-        />
-      </div>
     </div>
   )
 }

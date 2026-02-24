@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { MapContainer, TileLayer, Circle, Marker, useMap, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -15,14 +15,13 @@ const nycIcon = new L.Icon({
 })
 
 /**
- * Syncs circle radius to zoom level.
+ * Updates local radius state on user zoom — PURELY LOCAL.
+ * No callbacks to parent; no search is triggered.
  *
  * fittingRef: when true, FitToRadius is doing a programmatic fitBounds —
- * skip the zoomend handler to avoid a feedback loop where:
- *   onRadiusChange → new radius prop → FitToRadius.fitBounds → zoomend →
- *   onRadiusChange → … (infinite loop triggering a restaurant re-search each time)
+ * skip the zoomend handler to avoid a feedback loop.
  */
-function RadiusController({ radius, onRadiusChange, fittingRef }) {
+function RadiusController({ setLocalRadius, fittingRef }) {
   const map = useMap()
 
   useMapEvents({
@@ -34,9 +33,7 @@ function RadiusController({ radius, onRadiusChange, fittingRef }) {
       // Map zoom levels to radius: zoom 10 = ~8km, zoom 14 = ~1km
       const newRadius = Math.round(80000 / Math.pow(2, zoom - 8))
       const clamped = Math.max(500, Math.min(newRadius, 15000))
-      if (clamped !== radius) {
-        onRadiusChange(clamped)
-      }
+      setLocalRadius(clamped)
     },
   })
 
@@ -48,7 +45,7 @@ function RadiusController({ radius, onRadiusChange, fittingRef }) {
  *
  * Uses animate: false so zoomend fires synchronously — the fittingRef is
  * still true when RadiusController's zoomend fires, so it correctly skips
- * the radius-update callback, breaking the feedback loop.
+ * the setLocalRadius call, preventing any feedback loop.
  */
 function FitToRadius({ center, radius, fittingRef }) {
   const map = useMap()
@@ -56,10 +53,8 @@ function FitToRadius({ center, radius, fittingRef }) {
 
   useEffect(() => {
     if (Math.abs(prevRadius.current - radius) > 200) {
-      // Mark as programmatic so RadiusController ignores the resulting zoomend
       if (fittingRef) fittingRef.current = true
       const circle = L.circle([center.lat, center.lng], { radius })
-      // animate: false → zoomend fires synchronously, fittingRef is still true
       map.fitBounds(circle.getBounds(), { padding: [20, 20], animate: false })
       if (fittingRef) fittingRef.current = false
       prevRadius.current = radius
@@ -69,8 +64,11 @@ function FitToRadius({ center, radius, fittingRef }) {
   return null
 }
 
-// Allow dragging the center marker
-function DraggableCenter({ center, onCenterChange }) {
+/**
+ * Draggable center marker — updates LOCAL center state only.
+ * No parent callback until user clicks "Search This Area".
+ */
+function DraggableCenter({ center, setLocalCenter }) {
   const markerRef = useRef(null)
 
   const eventHandlers = {
@@ -78,7 +76,7 @@ function DraggableCenter({ center, onCenterChange }) {
       const marker = markerRef.current
       if (marker) {
         const pos = marker.getLatLng()
-        onCenterChange({ lat: pos.lat, lng: pos.lng })
+        setLocalCenter({ lat: pos.lat, lng: pos.lng })
       }
     },
   }
@@ -101,18 +99,37 @@ const RADIUS_PRESETS = [
   { label: '10 km', value: 10000 },
 ]
 
-export default function NYCMiniMap({ center, radius, onCenterChange, onRadiusChange }) {
-  // Shared ref: true while FitToRadius is executing a programmatic fitBounds.
-  // Prevents RadiusController from treating that zoom as a user gesture and
-  // calling onRadiusChange, which would re-trigger a restaurant search and
-  // cause another fitBounds → infinite loop.
+/**
+ * NYCMiniMap — fully decoupled from search.
+ *
+ * All interactions (zoom, drag, presets) update LOCAL state only.
+ * The parent is NOT notified until the user clicks "Search This Area".
+ *
+ * Props:
+ *   center        - initial center (from last committed search)
+ *   radius        - initial radius (from last committed search)
+ *   cuisineType   - displayed in the button label
+ *   onSearchArea  - called with (center, radius) ONLY when button is clicked
+ */
+export default function NYCMiniMap({ center, radius, cuisineType, onSearchArea }) {
+  // Local draft state — purely visual until user confirms
+  const [localCenter, setLocalCenter] = useState(center || NYC_CENTER)
+  const [localRadius, setLocalRadius] = useState(radius || 5000)
   const fittingRef = useRef(false)
 
-  // Fully controlled component — no local mirror state.
-  // Parent owns center/radius; this component reports changes up via callbacks.
-  const activeCenter = center || NYC_CENTER
-  const activeRadius = radius || 5000
-  const radiusKm = (activeRadius / 1000).toFixed(1)
+  // Sync local state when parent resets (e.g. new pin dropped → new cuisine)
+  useEffect(() => {
+    setLocalCenter(center || NYC_CENTER)
+  }, [center])
+
+  useEffect(() => {
+    setLocalRadius(radius || 5000)
+  }, [radius])
+
+  const radiusKm = (localRadius / 1000).toFixed(localRadius % 1000 === 0 ? 0 : 1)
+  const buttonLabel = cuisineType
+    ? `🔍 Search ${radiusKm} km · ${cuisineType}`
+    : `🔍 Search This Area (${radiusKm} km)`
 
   return (
     <div className="nyc-minimap">
@@ -123,7 +140,7 @@ export default function NYCMiniMap({ center, radius, onCenterChange, onRadiusCha
 
       <div className="minimap-container">
         <MapContainer
-          center={[activeCenter.lat, activeCenter.lng]}
+          center={[localCenter.lat, localCenter.lng]}
           zoom={12}
           className="minimap-leaflet"
           zoomControl={false}
@@ -134,8 +151,8 @@ export default function NYCMiniMap({ center, radius, onCenterChange, onRadiusCha
             url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
           />
           <Circle
-            center={[activeCenter.lat, activeCenter.lng]}
-            radius={activeRadius}
+            center={[localCenter.lat, localCenter.lng]}
+            radius={localRadius}
             pathOptions={{
               color: '#f97316',
               fillColor: '#f97316',
@@ -143,29 +160,35 @@ export default function NYCMiniMap({ center, radius, onCenterChange, onRadiusCha
               weight: 2,
             }}
           />
-          <DraggableCenter center={activeCenter} onCenterChange={onCenterChange} />
-          <RadiusController
-            radius={activeRadius}
-            onRadiusChange={onRadiusChange}
-            fittingRef={fittingRef}
-          />
-          <FitToRadius center={activeCenter} radius={activeRadius} fittingRef={fittingRef} />
+          <DraggableCenter center={localCenter} setLocalCenter={setLocalCenter} />
+          {/* RadiusController only updates local state — NO parent callbacks */}
+          <RadiusController setLocalRadius={setLocalRadius} fittingRef={fittingRef} />
+          <FitToRadius center={localCenter} radius={localRadius} fittingRef={fittingRef} />
         </MapContainer>
       </div>
 
+      {/* Preset buttons update local radius only — no search fires */}
       <div className="minimap-presets">
         {RADIUS_PRESETS.map((preset) => (
           <button
             key={preset.value}
-            className={`preset-btn ${activeRadius === preset.value ? 'active' : ''}`}
-            onClick={() => onRadiusChange?.(preset.value)}
+            className={`preset-btn ${localRadius === preset.value ? 'active' : ''}`}
+            onClick={() => setLocalRadius(preset.value)}
           >
             {preset.label}
           </button>
         ))}
       </div>
 
-      <p className="minimap-hint">Drag pin to move center. Zoom or pick a preset to adjust radius.</p>
+      {/* THE ONLY WAY to trigger a search — explicit user action */}
+      <button
+        className="search-area-btn"
+        onClick={() => onSearchArea?.(localCenter, localRadius)}
+      >
+        {buttonLabel}
+      </button>
+
+      <p className="minimap-hint">Adjust area, then click the button to search.</p>
     </div>
   )
 }

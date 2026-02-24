@@ -867,6 +867,38 @@
   font-style: italic;
 }
 
+/* "Search This Area" confirm button — the ONLY way to trigger a restaurant search from the mini-map */
+.search-area-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 10px 16px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-family: inherit;
+  color: #fff;
+  background: var(--accent, #f97316);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+  letter-spacing: 0.01em;
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.35);
+}
+
+.search-area-btn:hover {
+  background: #ea6a0a;
+  box-shadow: 0 4px 14px rgba(249, 115, 22, 0.5);
+  transform: translateY(-1px);
+}
+
+.search-area-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(249, 115, 22, 0.3);
+}
+
 /* Restaurant List */
 .restaurant-list {
   display: flex;

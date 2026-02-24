@@ -194,35 +194,15 @@ export default function App() {
     toastTimerRef.current = setTimeout(() => setShareToast(false), 2500)
   }, [result])
 
-  // Re-search with new center/radius (progressive: show then enrich)
-  const handleCenterChange = useCallback(async (newCenter) => {
+  // Called ONLY when the user explicitly clicks "Search This Area" in the mini-map.
+  // Updates committed center/radius then re-searches — no auto-trigger on zoom/drag.
+  const handleSearchArea = useCallback(async (newCenter, newRadius) => {
     setSearchCenter(newCenter)
-    if (lastCuisineRef.current && result) {
-      setLoading(true)
-      try {
-        const restaurants = await searchRestaurants(lastCuisineRef.current, newCenter, searchRadius)
-        setResult((prev) => prev ? { ...prev, restaurants, enriching: restaurants.length > 0 } : null)
-        setLoading(false)
-        if (restaurants.length > 0) {
-          enrichRestaurants(restaurants).then((enriched) => {
-            setResult((prev) => prev ? { ...prev, restaurants: enriched, enriching: false } : null)
-          }).catch(() => {
-            setResult((prev) => prev ? { ...prev, enriching: false } : null)
-          })
-        }
-      } catch (err) {
-        console.error('Re-search error:', err)
-        setLoading(false)
-      }
-    }
-  }, [searchRadius, result, searchRestaurants])
-
-  const handleRadiusChange = useCallback(async (newRadius) => {
     setSearchRadius(newRadius)
-    if (lastCuisineRef.current && result) {
+    if (lastCuisineRef.current) {
       setLoading(true)
       try {
-        const restaurants = await searchRestaurants(lastCuisineRef.current, searchCenter, newRadius)
+        const restaurants = await searchRestaurants(lastCuisineRef.current, newCenter, newRadius)
         setResult((prev) => prev ? { ...prev, restaurants, enriching: restaurants.length > 0 } : null)
         setLoading(false)
         if (restaurants.length > 0) {
@@ -237,7 +217,7 @@ export default function App() {
         setLoading(false)
       }
     }
-  }, [searchCenter, result, searchRestaurants])
+  }, [searchRestaurants])
 
   const handleHistoryClear = useCallback(() => {
     const cleared = clearPinHistory()
@@ -331,8 +311,7 @@ export default function App() {
         shareToast={shareToast}
         searchCenter={searchCenter}
         searchRadius={searchRadius}
-        onCenterChange={handleCenterChange}
-        onRadiusChange={handleRadiusChange}
+        onSearchArea={handleSearchArea}
         onReposition={handleReposition}
       />
     </div>
