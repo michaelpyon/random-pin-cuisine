@@ -16,6 +16,10 @@
 
 const CACHE_PREFIX = 'gplaces:'
 
+// Set to true if gm_authFailure fires — skip all enrichment
+let _apiBlocked = false
+window.gm_authFailure = () => { _apiBlocked = true }
+
 function cacheKey(name, lat, lon) {
   return `${CACHE_PREFIX}${name}|${Number(lat).toFixed(4)}|${Number(lon).toFixed(4)}`
 }
@@ -68,14 +72,20 @@ function getService() {
   return _service
 }
 
+const NULL_PLACE = { googleRating: null, googleReviewCount: null, googlePriceLevel: null }
+
 /**
  * Look up a single restaurant via PlacesService.findPlaceFromQuery.
  * Location bias is a 500m circle around the known OSM lat/lon.
  *
  * Returns { googleRating, googleReviewCount, googlePriceLevel } — all null on miss.
+ * Times out after 6s to prevent hanging on unauthorized API keys.
  */
 function fetchOnePlaceData(service, name, lat, lon) {
   return new Promise((resolve) => {
+    // Safety timeout — if the callback never fires (e.g. RefererNotAllowed), resolve gracefully
+    const timeout = setTimeout(() => resolve(NULL_PLACE), 6000)
+
     const request = {
       // Append "New York" to the query to prefer NYC matches
       query: `${name} New York`,
@@ -88,6 +98,7 @@ function fetchOnePlaceData(service, name, lat, lon) {
     }
 
     service.findPlaceFromQuery(request, (results, status) => {
+      clearTimeout(timeout)
       const OK = window.google.maps.places.PlacesServiceStatus.OK
       if (status === OK && results?.[0]) {
         const p = results[0]
@@ -98,7 +109,7 @@ function fetchOnePlaceData(service, name, lat, lon) {
           googlePriceLevel: p.price_level > 0 ? p.price_level : null,
         })
       } else {
-        resolve({ googleRating: null, googleReviewCount: null, googlePriceLevel: null })
+        resolve(NULL_PLACE)
       }
     })
   })
@@ -113,6 +124,7 @@ function fetchOnePlaceData(service, name, lat, lon) {
  */
 export async function enrichWithGooglePlaces(restaurants) {
   if (!restaurants?.length) return restaurants
+  if (_apiBlocked) return restaurants
 
   try {
     await waitForGoogle(5000)
@@ -120,6 +132,8 @@ export async function enrichWithGooglePlaces(restaurants) {
     console.warn('[googlePlaces] Skipping enrichment —', err.message)
     return restaurants
   }
+
+  if (_apiBlocked) return restaurants
 
   const service = getService()
 
