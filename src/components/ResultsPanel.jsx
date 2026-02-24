@@ -38,7 +38,7 @@ function StarDisplay({ stars }) {
 }
 
 // ── Main panel ────────────────────────────────────────────────────────────────
-export default function ResultsPanel({ result, loading, error, onClose, onSharePin, shareToast, searchCenter, searchRadius, onCenterChange, onRadiusChange }) {
+export default function ResultsPanel({ result, loading, error, onClose, onSharePin, shareToast, searchCenter, searchRadius, onCenterChange, onRadiusChange, onReposition }) {
   if (!loading && !result && !error) return null
 
   return (
@@ -68,6 +68,7 @@ export default function ResultsPanel({ result, loading, error, onClose, onShareP
           searchRadius={searchRadius}
           onCenterChange={onCenterChange}
           onRadiusChange={onRadiusChange}
+          onReposition={onReposition}
         />
       )}
     </div>
@@ -131,7 +132,7 @@ function haversineKm(lat1, lon1, lat2, lon2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 }
 
-function ResultContent({ result, onSharePin, searchCenter, searchRadius, onCenterChange, onRadiusChange }) {
+function ResultContent({ result, onSharePin, searchCenter, searchRadius, onCenterChange, onRadiusChange, onReposition }) {
   const { location, cuisine, restaurants } = result
 
   // ── Favorites state ─────────────────────────────────────────────────────────
@@ -211,14 +212,25 @@ function ResultContent({ result, onSharePin, searchCenter, searchRadius, onCente
               {location.lat.toFixed(3)}, {location.lng.toFixed(3)}
             </p>
           </div>
-          <button
-            className="share-pin-btn"
-            onClick={onSharePin}
-            title="Copy shareable link"
-          >
-            <span className="share-pin-icon">🔗</span>
-            <span className="share-pin-label">Share</span>
-          </button>
+          <div className="location-actions">
+            {onReposition && (
+              <button
+                className="reposition-btn"
+                onClick={onReposition}
+                title="Pan map and re-drop the pin"
+              >
+                🔄 Reposition
+              </button>
+            )}
+            <button
+              className="share-pin-btn"
+              onClick={onSharePin}
+              title="Copy shareable link"
+            >
+              <span className="share-pin-icon">🔗</span>
+              <span className="share-pin-label">Share</span>
+            </button>
+          </div>
         </div>
       </div>
 

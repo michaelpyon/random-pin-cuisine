@@ -27,6 +27,8 @@ export default function App() {
   const [searchRadius, setSearchRadius] = useState(DEFAULT_RADIUS)
   const [shareToast, setShareToast] = useState(false)
   const [pinHistory, setPinHistory] = useState(() => getPinHistory())
+  // true while user is panning to reposition before re-dropping the pin
+  const [repositioning, setRepositioning] = useState(false)
 
   // Keep a ref to the latest cuisine so re-searches can use it
   const lastCuisineRef = useRef(null)
@@ -106,12 +108,34 @@ export default function App() {
   }, [searchCenter, searchRadius, searchRestaurants])
 
   const handleMapClick = useCallback((lat, lng) => {
+    setRepositioning(false)
     const roundedLat = Math.round(lat * 1000) / 1000
     const roundedLng = Math.round(lng * 1000) / 1000
     processPin(roundedLat, roundedLng)
   }, [processPin])
 
+  // "Drop Pin Here" button — reads map center coords from WorldMap
+  const handleDropPin = useCallback((lat, lng) => {
+    setRepositioning(false)
+    const roundedLat = Math.round(lat * 10000) / 10000
+    const roundedLng = Math.round(lng * 10000) / 10000
+    processPin(roundedLat, roundedLng)
+  }, [processPin])
+
+  // Draggable marker moved — re-run pipeline with new coords
+  const handlePinDrag = useCallback((lat, lng) => {
+    processPin(lat, lng)
+  }, [processPin])
+
+  // "Reposition" — open crosshair mode without discarding the pin
+  const handleReposition = useCallback(() => {
+    setRepositioning(true)
+    setResult(null)
+    setError(null)
+  }, [])
+
   const handleRandomPin = useCallback(() => {
+    setRepositioning(false)
     const { lat, lng } = getRandomLandCoords()
     processPin(lat, lng)
   }, [processPin])
@@ -120,6 +144,7 @@ export default function App() {
     setResult(null)
     setError(null)
     setLoading(false)
+    setRepositioning(false)
     // Clear ?lat&lng params from URL when closing
     const url = new URL(window.location.href)
     url.searchParams.delete('lat')
@@ -225,12 +250,18 @@ export default function App() {
       </header>
 
       <div className="map-container">
-        <WorldMap pin={pin} onMapClick={handleMapClick} />
+        <WorldMap
+          pin={pin}
+          onMapClick={handleMapClick}
+          showCrosshair={!pin || repositioning}
+          onDropPin={handleDropPin}
+          onPinDrag={handlePinDrag}
+        />
 
-        {!pin && !loading && (
-          <div className="map-hint">
+        {!pin && !loading && !repositioning && (
+          <div className="map-hint map-hint--desktop">
             <span className="map-hint-pulse" />
-            <span className="map-hint-text">Click anywhere to explore</span>
+            <span className="map-hint-text">Pan map &amp; tap Drop Pin — or click anywhere</span>
           </div>
         )}
 
@@ -266,6 +297,7 @@ export default function App() {
         searchRadius={searchRadius}
         onCenterChange={handleCenterChange}
         onRadiusChange={handleRadiusChange}
+        onReposition={handleReposition}
       />
     </div>
   )

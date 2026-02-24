@@ -40,10 +40,96 @@
   position: relative;
 }
 
+/* WorldMap inner wrapper — fills its parent, needed for crosshair positioning */
+.world-map-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
 .world-map {
   width: 100%;
   height: 100%;
   background: var(--bg-primary);
+}
+
+/* ── Crosshair overlay ──────────────────────────────────────────────────────── */
+.map-crosshair {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 1000;
+  animation: crosshair-pop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
+}
+
+@keyframes crosshair-pop {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.7); }
+  to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+/* ── Drop Pin Here button ────────────────────────────────────────────────────── */
+.drop-pin-btn {
+  position: absolute;
+  bottom: 152px;     /* above history strip (104px) + Random Pin btn (32px) */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1001;
+  padding: 14px 34px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  font-family: inherit;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 4px 24px var(--accent-glow), 0 2px 10px rgba(0, 0, 0, 0.4);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  animation: btn-rise 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.drop-pin-btn:hover {
+  background: var(--accent-hover);
+  transform: translateX(-50%) translateY(-2px);
+  box-shadow: 0 6px 32px var(--accent-glow), 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+.drop-pin-btn:active {
+  transform: translateX(-50%) translateY(0);
+}
+
+@keyframes btn-rise {
+  from { opacity: 0; transform: translateX(-50%) translateY(12px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* On desktop, hide the drop-pin-btn (click-on-map is the primary gesture) */
+@media (pointer: fine) {
+  .drop-pin-btn {
+    display: none;
+  }
+}
+
+/* ── Drag-to-adjust Leaflet tooltip ─────────────────────────────────────────── */
+.drag-tooltip.leaflet-tooltip {
+  background: rgba(15, 17, 23, 0.88);
+  border: 1px solid rgba(249, 115, 22, 0.4);
+  color: var(--text-primary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+}
+
+.drag-tooltip.leaflet-tooltip::before {
+  border-top-color: rgba(249, 115, 22, 0.4);
 }
 
 /* Leaflet overrides for dark theme */
@@ -94,6 +180,17 @@
 .leaflet-bottom.leaflet-right {
   bottom: 100px !important;
   right: 12px !important;
+}
+
+/* Map click hint — only visible on desktop (touch devices see crosshair instead) */
+.map-hint--desktop {
+  display: none;
+}
+
+@media (pointer: fine) {
+  .map-hint--desktop {
+    display: flex;
+  }
 }
 
 /* Map click hint */
@@ -522,6 +619,44 @@
   color: var(--text-muted);
   font-family: 'SF Mono', 'Fira Code', monospace;
   margin-top: 2px;
+}
+
+/* Location action buttons row */
+.location-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* Reposition Button */
+.reposition-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  padding: 6px 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--accent);
+  background: rgba(249, 115, 22, 0.08);
+  border: 1px solid rgba(249, 115, 22, 0.35);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+}
+
+.reposition-btn:hover {
+  color: #fff;
+  background: var(--accent);
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.reposition-btn:active {
+  transform: translateY(0);
 }
 
 /* Share Pin Button */
