@@ -14,12 +14,22 @@ const nycIcon = new L.Icon({
   shadowSize: [33, 33],
 })
 
-// Syncs circle radius to zoom level
-function RadiusController({ center, radius, onRadiusChange }) {
+/**
+ * Syncs circle radius to zoom level.
+ *
+ * fittingRef: when true, FitToRadius is doing a programmatic fitBounds —
+ * skip the zoomend handler to avoid a feedback loop where:
+ *   onRadiusChange → new radius prop → FitToRadius.fitBounds → zoomend →
+ *   onRadiusChange → … (infinite loop triggering a restaurant re-search each time)
+ */
+function RadiusController({ radius, onRadiusChange, fittingRef }) {
   const map = useMap()
 
   useMapEvents({
     zoomend() {
+      // Skip programmatic zoom events triggered by FitToRadius
+      if (fittingRef && fittingRef.current) return
+
       const zoom = map.getZoom()
       // Map zoom levels to radius: zoom 10 = ~8km, zoom 14 = ~1km
       const newRadius = Math.round(80000 / Math.pow(2, zoom - 8))
@@ -33,18 +43,28 @@ function RadiusController({ center, radius, onRadiusChange }) {
   return null
 }
 
-// Fit map to circle bounds when radius changes
-function FitToRadius({ center, radius }) {
+/**
+ * Fit map to circle bounds when radius changes.
+ *
+ * Uses animate: false so zoomend fires synchronously — the fittingRef is
+ * still true when RadiusController's zoomend fires, so it correctly skips
+ * the radius-update callback, breaking the feedback loop.
+ */
+function FitToRadius({ center, radius, fittingRef }) {
   const map = useMap()
   const prevRadius = useRef(radius)
 
   useEffect(() => {
     if (Math.abs(prevRadius.current - radius) > 200) {
+      // Mark as programmatic so RadiusController ignores the resulting zoomend
+      if (fittingRef) fittingRef.current = true
       const circle = L.circle([center.lat, center.lng], { radius })
-      map.fitBounds(circle.getBounds(), { padding: [20, 20], animate: true })
+      // animate: false → zoomend fires synchronously, fittingRef is still true
+      map.fitBounds(circle.getBounds(), { padding: [20, 20], animate: false })
+      if (fittingRef) fittingRef.current = false
       prevRadius.current = radius
     }
-  }, [radius, center, map])
+  }, [radius, center, map]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return null
 }
@@ -82,6 +102,12 @@ const RADIUS_PRESETS = [
 ]
 
 export default function NYCMiniMap({ center, radius, onCenterChange, onRadiusChange }) {
+  // Shared ref: true while FitToRadius is executing a programmatic fitBounds.
+  // Prevents RadiusController from treating that zoom as a user gesture and
+  // calling onRadiusChange, which would re-trigger a restaurant search and
+  // cause another fitBounds → infinite loop.
+  const fittingRef = useRef(false)
+
   // Fully controlled component — no local mirror state.
   // Parent owns center/radius; this component reports changes up via callbacks.
   const activeCenter = center || NYC_CENTER
@@ -118,8 +144,12 @@ export default function NYCMiniMap({ center, radius, onCenterChange, onRadiusCha
             }}
           />
           <DraggableCenter center={activeCenter} onCenterChange={onCenterChange} />
-          <RadiusController center={activeCenter} radius={activeRadius} onRadiusChange={onRadiusChange} />
-          <FitToRadius center={activeCenter} radius={activeRadius} />
+          <RadiusController
+            radius={activeRadius}
+            onRadiusChange={onRadiusChange}
+            fittingRef={fittingRef}
+          />
+          <FitToRadius center={activeCenter} radius={activeRadius} fittingRef={fittingRef} />
         </MapContainer>
       </div>
 

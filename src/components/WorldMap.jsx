@@ -32,20 +32,36 @@ function MapClickHandler({ onMapClick }) {
   return null
 }
 
-function FlyToPin({ lat, lng }) {
+function FlyToPin({ lat, lng, suppressRef }) {
   const map = useMap()
   useEffect(() => {
     if (lat != null && lng != null) {
+      // Suppress moveend tracking during programmatic flyTo so it doesn't
+      // cause unnecessary state updates. Reset after animation completes.
+      if (suppressRef) suppressRef.current = true
       map.flyTo([lat, lng], 5, { duration: 1.2 })
+      const timer = setTimeout(() => {
+        if (suppressRef) suppressRef.current = false
+      }, 1400) // slightly longer than duration to be safe
+      return () => clearTimeout(timer)
     }
-  }, [lat, lng, map])
+  }, [lat, lng, map]) // eslint-disable-line react-hooks/exhaustive-deps
   return null
 }
 
-/** Tracks live map center and reports it via callback */
-function MapCenterTracker({ onCenterChange }) {
+/**
+ * Tracks map center and reports it via callback — but ONLY on moveend, not
+ * on every move frame. This prevents hundreds of state updates per zoom/pan
+ * gesture and avoids triggering re-renders during FlyToPin animations.
+ *
+ * Also respects suppressRef: when true (set by FlyToPin during programmatic
+ * flyTo), the moveend callback is skipped entirely.
+ */
+function MapCenterTracker({ onCenterChange, suppressRef }) {
   const map = useMapEvents({
-    move() {
+    moveend() {
+      // Skip updates driven by programmatic flyTo calls
+      if (suppressRef && suppressRef.current) return
       const c = map.getCenter()
       onCenterChange(c.lat, c.lng)
     },
@@ -89,8 +105,12 @@ function CrosshairSVG() {
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function WorldMap({ pin, onMapClick, showCrosshair, onDropPin, onPinDrag }) {
-  // Live map center — updated by MapCenterTracker
+  // Live map center — updated by MapCenterTracker (on moveend only)
   const [mapCenter, setMapCenter] = useState({ lat: 20, lng: 0 })
+
+  // Shared ref: true while FlyToPin is animating a programmatic flyTo.
+  // MapCenterTracker checks this ref and skips updates during flyTo.
+  const flyingSuppressRef = useRef(false)
 
   // "Drag to adjust" tooltip on the first pin ever placed
   const [showDragTip, setShowDragTip] = useState(false)
@@ -129,7 +149,10 @@ export default function WorldMap({ pin, onMapClick, showCrosshair, onDropPin, on
         />
         <ZoomControl position="bottomright" />
         <MapClickHandler onMapClick={onMapClick} />
-        <MapCenterTracker onCenterChange={(lat, lng) => setMapCenter({ lat, lng })} />
+        <MapCenterTracker
+          onCenterChange={(lat, lng) => setMapCenter({ lat, lng })}
+          suppressRef={flyingSuppressRef}
+        />
 
         {pin && (
           <>
@@ -150,7 +173,7 @@ export default function WorldMap({ pin, onMapClick, showCrosshair, onDropPin, on
                 </Tooltip>
               )}
             </Marker>
-            <FlyToPin lat={pin.lat} lng={pin.lng} />
+            <FlyToPin lat={pin.lat} lng={pin.lng} suppressRef={flyingSuppressRef} />
           </>
         )}
       </MapContainer>

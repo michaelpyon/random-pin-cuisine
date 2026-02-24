@@ -33,6 +33,8 @@ export default function App() {
   // Keep a ref to the latest cuisine so re-searches can use it
   const lastCuisineRef = useRef(null)
   const toastTimerRef = useRef(null)
+  // Guard against concurrent processPin calls (e.g. from accidental re-fires)
+  const isSearchingRef = useRef(false)
 
   const searchRestaurants = useCallback(async (cuisineInfo, center, radius) => {
     return findNYCRestaurants(cuisineInfo, {
@@ -42,6 +44,11 @@ export default function App() {
   }, [])
 
   const processPin = useCallback(async (lat, lng) => {
+    // Prevent concurrent calls — map events (zoom/pan) must never reach here,
+    // but this ref is a final safety net against any accidental re-entry.
+    if (isSearchingRef.current) return
+    isSearchingRef.current = true
+
     setPin({ lat, lng })
     setResult(null)
     setError(null)
@@ -104,6 +111,7 @@ export default function App() {
       setError(`Something went wrong: ${err.message}`)
     } finally {
       setLoading(false)
+      isSearchingRef.current = false
     }
   }, [searchCenter, searchRadius, searchRestaurants])
 
