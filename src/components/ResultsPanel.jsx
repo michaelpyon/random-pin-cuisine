@@ -225,14 +225,21 @@ function ResultContent({ result, onSharePin, searchCenter, searchRadius, onCente
   // Which restaurants to show
   const favIds = new Set(favorites.map(favId))
 
-  let displayed = restaurants
+  // Sort restaurants: rated first (by Google rating desc), then unrated
+  const sortedRestaurants = [...restaurants].sort((a, b) => {
+    const rA = a.googleRating ?? a.stars ?? -1
+    const rB = b.googleRating ?? b.stars ?? -1
+    return rB - rA
+  })
+
+  let displayed = sortedRestaurants
   if (activeTab === 'saved') {
     displayed = favorites
   } else {
     if (cuisineFilter === 'rated') {
-      displayed = restaurants.filter(r => r.stars !== null && r.stars !== undefined)
+      displayed = sortedRestaurants.filter(r => (r.googleRating ?? r.stars) != null)
     } else if (cuisineFilter) {
-      displayed = restaurants.filter(r =>
+      displayed = sortedRestaurants.filter(r =>
         r.cuisine.some(c => c.toLowerCase() === cuisineFilter.toLowerCase())
       )
     }
@@ -364,16 +371,22 @@ function ResultContent({ result, onSharePin, searchCenter, searchRadius, onCente
           )
         ) : displayed.length > 0 ? (
           <div className="restaurant-list">
-            {displayed.map((restaurant, i) => (
-              <RestaurantCard
-                key={`${restaurant.name}-${i}`}
-                restaurant={restaurant}
-                index={i}
-                searchCenter={searchCenter}
-                isFavorited={favIds.has(favId(restaurant))}
-                onToggleFavorite={() => toggleFavorite(restaurant)}
-              />
-            ))}
+            {displayed.map((restaurant, i) => {
+              // Mark top pick: first card AND has a rating of 4.0+ 
+              const topRating = restaurant.googleRating ?? restaurant.stars
+              const topPickEligible = i === 0 && topRating != null && topRating >= 4.0
+              return (
+                <RestaurantCard
+                  key={`${restaurant.name}-${i}`}
+                  restaurant={restaurant}
+                  index={i}
+                  searchCenter={searchCenter}
+                  isFavorited={favIds.has(favId(restaurant))}
+                  onToggleFavorite={() => toggleFavorite(restaurant)}
+                  isTopPick={topPickEligible}
+                />
+              )
+            })}
           </div>
         ) : (
           <div className="no-match-box">
@@ -401,7 +414,7 @@ function ResultContent({ result, onSharePin, searchCenter, searchRadius, onCente
   )
 }
 
-function RestaurantCard({ restaurant, index, searchCenter, isFavorited, onToggleFavorite }) {
+function RestaurantCard({ restaurant, index, searchCenter, isFavorited, onToggleFavorite, isTopPick }) {
   const badges = getBadges(restaurant.name)
   const hasBadges = badges.length > 0
 
@@ -416,15 +429,17 @@ function RestaurantCard({ restaurant, index, searchCenter, isFavorited, onToggle
 
   return (
     <div
-      className={`restaurant-card ${hasBadges ? 'restaurant-card--featured' : ''}`}
+      className={`restaurant-card ${hasBadges ? 'restaurant-card--featured' : ''} ${isTopPick ? 'restaurant-card--top-pick' : ''}`}
       style={{ animationDelay: `${index * 60}ms` }}
     >
       <div className="restaurant-card-accent" />
       <div className="restaurant-info">
         <div className="restaurant-header">
           <div className="restaurant-name-row">
-            <span className="restaurant-rank">#{index + 1}</span>
             <h4 className="restaurant-name">{restaurant.name}</h4>
+            {isTopPick && (
+              <span className="top-pick-badge">⭐ Top Rated</span>
+            )}
             {/* Favorite toggle button */}
             <button
               className={`fav-btn ${isFavorited ? 'fav-btn--active' : ''}`}
