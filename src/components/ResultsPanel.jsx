@@ -26,7 +26,7 @@ function favId(restaurant) {
 // ── Star display (legacy — used by SavedCard which only has OSM stars) ────────
 function StarDisplay({ stars }) {
   if (stars === null || stars === undefined) {
-    return <span className="restaurant-no-rating">No rating</span>
+    return null
   }
   const full = Math.floor(stars)
   const empty = 5 - full
@@ -39,14 +39,15 @@ function StarDisplay({ stars }) {
 
 /**
  * Rich rating display for RestaurantCard.
- * Prefers Google Places data; falls back to OSM stars; shows "No rating" on miss.
+ * Prefers Google Places data; falls back to OSM stars; returns null on miss.
  *   ★★★★☆ 4.2 · 312 reviews  $$$
  */
 function RatingDisplay({ googleRating, googleReviewCount, googlePriceLevel, osmStars }) {
   const rating = googleRating ?? osmStars
 
+  // No data at all — render nothing (don't clutter every card with "No rating")
   if (rating === null || rating === undefined) {
-    return <span className="restaurant-no-rating">No rating</span>
+    return null
   }
 
   const full = Math.floor(rating)
@@ -92,7 +93,7 @@ export default function ResultsPanel({ result, loading, error, onClose, onShareP
       )}
 
       {loading && <LoadingState />}
-      {error && <ErrorState message={error} />}
+      {error && <ErrorState message={error} onRetry={onClose} />}
       {result && !loading && (
         <ResultContent
           result={result}
@@ -144,11 +145,16 @@ function LoadingState() {
   )
 }
 
-function ErrorState({ message }) {
+function ErrorState({ message, onRetry }) {
   return (
     <div className="error-state">
-      <span className="error-icon">oops</span>
+      <span className="error-icon">⚠️ Oops</span>
       <p>{message}</p>
+      {onRetry && (
+        <button className="error-retry-btn" onClick={onRetry}>
+          Try a different pin →
+        </button>
+      )}
     </div>
   )
 }
@@ -279,17 +285,6 @@ function ResultContent({ result, onSharePin, searchCenter, searchRadius, onCente
 
       <div className="result-divider" />
 
-      <div className="result-section minimap-section">
-        <NYCMiniMap
-          center={searchCenter}
-          radius={searchRadius}
-          onCenterChange={onCenterChange}
-          onRadiusChange={onRadiusChange}
-        />
-      </div>
-
-      <div className="result-divider" />
-
       <div className="result-section restaurant-section">
         {/* Header row: title + tabs */}
         <div className="restaurant-header-row">
@@ -383,10 +378,24 @@ function ResultContent({ result, onSharePin, searchCenter, searchRadius, onCente
         ) : (
           <div className="no-match-box">
             <p className="no-match-emoji">🔍</p>
-            <p className="no-match">No matches in this area.</p>
-            <p className="no-match-hint">Try expanding the search radius below.</p>
+            <p className="no-match">No restaurants found in this area.</p>
+            <p className="no-match-hint">Try expanding the search radius using the NYC map below.</p>
           </div>
         )}
+      </div>
+
+      <div className="result-divider" />
+
+      <div className="result-section minimap-section">
+        <p className="minimap-context-hint">
+          Adjust where in NYC to search for <strong>{cuisine.cuisineType}</strong> restaurants:
+        </p>
+        <NYCMiniMap
+          center={searchCenter}
+          radius={searchRadius}
+          onCenterChange={onCenterChange}
+          onRadiusChange={onRadiusChange}
+        />
       </div>
     </div>
   )
@@ -401,8 +410,8 @@ function RestaurantCard({ restaurant, index, searchCenter, isFavorited, onToggle
   if (restaurant.lat && restaurant.lon && searchCenter) {
     const km = haversineKm(searchCenter.lat, searchCenter.lng, restaurant.lat, restaurant.lon)
     distanceLabel = km < 1
-      ? `${Math.round(km * 1000)} m away`
-      : `${km.toFixed(1)} km away`
+      ? `${Math.round(km * 1000)} m`
+      : `${km.toFixed(1)} km`
   }
 
   return (
@@ -456,7 +465,7 @@ function RestaurantCard({ restaurant, index, searchCenter, isFavorited, onToggle
         <div className="restaurant-meta">
           {restaurant.cuisine.length > 0 && (
             <p className="restaurant-categories">
-              {restaurant.cuisine.join(' · ')}
+              {restaurant.cuisine.slice(0, 3).join(' · ')}
             </p>
           )}
 
@@ -501,8 +510,9 @@ function RestaurantCard({ restaurant, index, searchCenter, isFavorited, onToggle
             target="_blank"
             rel="noopener noreferrer"
             className="restaurant-link-btn restaurant-link-btn--secondary"
+            title="View on OpenStreetMap"
           >
-            OSM
+            Source
           </a>
         </div>
       </div>

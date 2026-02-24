@@ -190,7 +190,7 @@ const CUISINE_DB = {
 
 const DEFAULT_CUISINE = {
   cuisineType: 'International',
-  description: 'A unique regional cuisine waiting to be explored. Every corner of the world has its own delicious story.',
+  description: 'This region has a rich local food tradition we\'re still mapping. NYC\'s diverse dining scene has something for every palate — browse what\'s nearby.',
   osmCuisineTag: 'international',
   osmFallbackTag: null,
 }
