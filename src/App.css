@@ -1104,6 +1104,35 @@
   font-style: italic;
 }
 
+/* ── Google Places rating row ─────────────────────────────────────────────── */
+.restaurant-rating-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  line-height: 1;
+}
+
+.restaurant-rating-value {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #f97316;
+}
+
+.restaurant-review-count {
+  font-size: 0.70rem;
+  color: var(--text-muted);
+  opacity: 0.75;
+}
+
+.restaurant-price-level {
+  font-size: 0.72rem;
+  color: #4ade80;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  margin-left: 2px;
+}
+
 /* ── Favorite Button ─────────────────────────────────────────────────────────── */
 .fav-btn {
   background: none;

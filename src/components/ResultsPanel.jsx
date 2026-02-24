@@ -23,7 +23,7 @@ function favId(restaurant) {
   return `${restaurant.name}|${restaurant.lat}|${restaurant.lon}`
 }
 
-// ── Star display ──────────────────────────────────────────────────────────────
+// ── Star display (legacy — used by SavedCard which only has OSM stars) ────────
 function StarDisplay({ stars }) {
   if (stars === null || stars === undefined) {
     return <span className="restaurant-no-rating">No rating</span>
@@ -33,6 +33,39 @@ function StarDisplay({ stars }) {
   return (
     <span className="restaurant-stars" title={`${stars} / 5 stars`}>
       {'★'.repeat(full)}{'☆'.repeat(empty)}
+    </span>
+  )
+}
+
+/**
+ * Rich rating display for RestaurantCard.
+ * Prefers Google Places data; falls back to OSM stars; shows "No rating" on miss.
+ *   ★★★★☆ 4.2 · 312 reviews  $$$
+ */
+function RatingDisplay({ googleRating, googleReviewCount, googlePriceLevel, osmStars }) {
+  const rating = googleRating ?? osmStars
+
+  if (rating === null || rating === undefined) {
+    return <span className="restaurant-no-rating">No rating</span>
+  }
+
+  const full = Math.floor(rating)
+  const empty = 5 - full
+
+  return (
+    <span className="restaurant-rating-row">
+      <span className="restaurant-stars" title={`${Number(rating).toFixed(1)} / 5 stars`}>
+        {'★'.repeat(full)}{'☆'.repeat(empty)}
+      </span>
+      <span className="restaurant-rating-value">{Number(rating).toFixed(1)}</span>
+      {googleReviewCount != null && (
+        <span className="restaurant-review-count">
+          · {googleReviewCount.toLocaleString()} reviews
+        </span>
+      )}
+      {googlePriceLevel != null && (
+        <span className="restaurant-price-level">{'$'.repeat(googlePriceLevel)}</span>
+      )}
     </span>
   )
 }
@@ -397,8 +430,13 @@ function RestaurantCard({ restaurant, index, searchCenter, isFavorited, onToggle
             {distanceLabel && (
               <span className="restaurant-distance">{distanceLabel}</span>
             )}
-            {/* Star rating */}
-            <StarDisplay stars={restaurant.stars} />
+            {/* Rating: Google Places preferred, OSM stars as fallback */}
+            <RatingDisplay
+              googleRating={restaurant.googleRating}
+              googleReviewCount={restaurant.googleReviewCount}
+              googlePriceLevel={restaurant.googlePriceLevel}
+              osmStars={restaurant.stars}
+            />
             {hasBadges && (
               <div className="restaurant-badges">
                 {badges.map((badge) => (

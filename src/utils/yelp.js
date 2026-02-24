@@ -1,4 +1,5 @@
 // NYC restaurant search using Overpass API (OpenStreetMap) — completely free, no API key
+import { enrichWithGooglePlaces } from './googlePlaces'
 const OVERPASS_URL = 'https://overpass-api.de/api/interpreter'
 
 // Default NYC center (Midtown Manhattan)
@@ -29,9 +30,10 @@ export async function findNYCRestaurants(cuisineInfo, { center, radiusMeters } =
     return []
   }
 
-  // Shuffle and return up to 10 restaurants
+  // Shuffle, format, then enrich with Google Places ratings
   const shuffled = results.sort(() => Math.random() - 0.5)
-  return shuffled.slice(0, 10).map(formatRestaurant)
+  const formatted = shuffled.slice(0, 10).map(formatRestaurant)
+  return enrichWithGooglePlaces(formatted)
 }
 
 async function queryOverpassRadius(cuisineTag, center, radius) {
