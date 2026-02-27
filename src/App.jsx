@@ -245,6 +245,19 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [loading, result, error, handleRandomPin, handleClose])
 
+  // Track whether user has ever dropped a pin (for first-visit UX)
+  const [hasDroppedPin, setHasDroppedPin] = useState(() => {
+    return localStorage.getItem('rpc-has-dropped') === '1'
+  })
+
+  // Mark first pin drop
+  useEffect(() => {
+    if (pin && !hasDroppedPin) {
+      setHasDroppedPin(true)
+      localStorage.setItem('rpc-has-dropped', '1')
+    }
+  }, [pin, hasDroppedPin])
+
   // On mount: check URL for ?lat=&lng= to auto-load a shared pin
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -291,7 +304,7 @@ export default function App() {
         {/* Random Pin button with [R] keyboard hint */}
         <div className="random-pin-wrapper">
           <button
-            className="random-pin-btn"
+            className={`random-pin-btn ${!hasDroppedPin && !loading ? 'random-pin-btn--pulse' : ''}`}
             onClick={handleRandomPin}
             disabled={loading}
             title="Random Pin (press R)"
@@ -300,6 +313,15 @@ export default function App() {
           </button>
           {!loading && <span className="random-pin-kbd">[R]</span>}
         </div>
+
+        {/* First-visit welcome card */}
+        {!hasDroppedPin && !loading && !pin && (
+          <div className="welcome-card">
+            <h2>Drop a pin anywhere on the globe</h2>
+            <p>We'll identify the local cuisine and find restaurants serving it in NYC.</p>
+            <span className="welcome-arrow">👇</span>
+          </div>
+        )}
       </div>
 
       <ResultsPanel

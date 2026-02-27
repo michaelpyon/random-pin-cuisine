@@ -121,6 +121,20 @@ const LOADING_MESSAGES = [
   'Almost there, stay hungry...',
 ]
 
+function SkeletonCards() {
+  return (
+    <div className="skeleton-cards">
+      {[0, 1, 2].map(i => (
+        <div className="skeleton-card" key={i}>
+          <div className="skeleton-line skeleton-line--title" />
+          <div className="skeleton-line skeleton-line--subtitle" />
+          <div className="skeleton-line skeleton-line--short" />
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function LoadingState() {
   const [msgIndex, setMsgIndex] = useState(() => Math.floor(Math.random() * LOADING_MESSAGES.length))
 
@@ -140,6 +154,7 @@ function LoadingState() {
       <p className="loading-message" key={msgIndex} style={{ animation: 'fade-msg 0.4s ease-in' }}>
         {LOADING_MESSAGES[msgIndex]}
       </p>
+      <SkeletonCards />
     </div>
   )
 }
