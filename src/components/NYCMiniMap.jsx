@@ -18,21 +18,21 @@ const nycIcon = new L.Icon({
  * Updates local radius state on user zoom — PURELY LOCAL.
  * No callbacks to parent; no search is triggered.
  *
- * fittingRef: when true, FitToRadius is doing a programmatic fitBounds —
- * skip the zoomend handler to avoid a feedback loop.
+ * fromZoomRef: set to true before calling setLocalRadius so FitToRadius
+ * knows not to call fitBounds (the map is already at the right zoom).
  */
-function RadiusController({ setLocalRadius, fittingRef }) {
+function RadiusController({ setLocalRadius, fromZoomRef }) {
   const map = useMap()
 
   useMapEvents({
     zoomend() {
-      // Skip programmatic zoom events triggered by FitToRadius
-      if (fittingRef && fittingRef.current) return
-
       const zoom = map.getZoom()
       // Map zoom levels to radius: zoom 10 = ~8km, zoom 14 = ~1km
       const newRadius = Math.round(80000 / Math.pow(2, zoom - 8))
       const clamped = Math.max(500, Math.min(newRadius, 15000))
+      // Mark this radius change as coming from a user zoom —
+      // FitToRadius will skip fitBounds to avoid an oscillation loop.
+      if (fromZoomRef) fromZoomRef.current = true
       setLocalRadius(clamped)
     },
   })
@@ -41,22 +41,27 @@ function RadiusController({ setLocalRadius, fittingRef }) {
 }
 
 /**
- * Fit map to circle bounds when radius changes.
- *
- * Uses animate: false so zoomend fires synchronously — the fittingRef is
- * still true when RadiusController's zoomend fires, so it correctly skips
- * the setLocalRadius call, preventing any feedback loop.
+ * Fit map to circle bounds when radius changes via preset button or
+ * parent prop sync. Skipped when the change originated from a user zoom
+ * (the map is already at the correct zoom level in that case).
  */
-function FitToRadius({ center, radius, fittingRef }) {
+function FitToRadius({ center, radius, fromZoomRef }) {
   const map = useMap()
   const prevRadius = useRef(radius)
 
   useEffect(() => {
+    // If the radius change came from a user zoom, don't fitBounds —
+    // the map is already positioned correctly and calling fitBounds
+    // would trigger another zoomend, creating an oscillation loop.
+    if (fromZoomRef && fromZoomRef.current) {
+      fromZoomRef.current = false
+      prevRadius.current = radius
+      return
+    }
+
     if (Math.abs(prevRadius.current - radius) > 200) {
-      if (fittingRef) fittingRef.current = true
       const circle = L.circle([center.lat, center.lng], { radius })
       map.fitBounds(circle.getBounds(), { padding: [20, 20], animate: false })
-      if (fittingRef) fittingRef.current = false
       prevRadius.current = radius
     }
   }, [radius, center, map]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -115,7 +120,7 @@ export default function NYCMiniMap({ center, radius, cuisineType, onSearchArea }
   // Local draft state — purely visual until user confirms
   const [localCenter, setLocalCenter] = useState(center || NYC_CENTER)
   const [localRadius, setLocalRadius] = useState(radius || 5000)
-  const fittingRef = useRef(false)
+  const fromZoomRef = useRef(false)
 
   // Sync local state when parent resets (e.g. new pin dropped → new cuisine)
   useEffect(() => {
@@ -162,8 +167,8 @@ export default function NYCMiniMap({ center, radius, cuisineType, onSearchArea }
           />
           <DraggableCenter center={localCenter} setLocalCenter={setLocalCenter} />
           {/* RadiusController only updates local state — NO parent callbacks */}
-          <RadiusController setLocalRadius={setLocalRadius} fittingRef={fittingRef} />
-          <FitToRadius center={localCenter} radius={localRadius} fittingRef={fittingRef} />
+          <RadiusController setLocalRadius={setLocalRadius} fromZoomRef={fromZoomRef} />
+          <FitToRadius center={localCenter} radius={localRadius} fromZoomRef={fromZoomRef} />
         </MapContainer>
       </div>
 
