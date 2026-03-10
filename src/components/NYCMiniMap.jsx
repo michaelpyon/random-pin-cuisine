@@ -70,6 +70,19 @@ function FitToRadius({ center, radius, fromZoomRef }) {
 }
 
 /**
+ * Listens for map clicks and moves the center pin to the clicked location.
+ * Ignores clicks that originate from dragging the marker.
+ */
+function ClickToPlace({ setLocalCenter }) {
+  useMapEvents({
+    click(e) {
+      setLocalCenter({ lat: e.latlng.lat, lng: e.latlng.lng })
+    },
+  })
+  return null
+}
+
+/**
  * Draggable center marker — updates LOCAL center state only.
  * No parent callback until user clicks "Search This Area".
  */
@@ -165,6 +178,7 @@ export default function NYCMiniMap({ center, radius, cuisineType, onSearchArea }
               weight: 2,
             }}
           />
+          <ClickToPlace setLocalCenter={setLocalCenter} />
           <DraggableCenter center={localCenter} setLocalCenter={setLocalCenter} />
           {/* RadiusController only updates local state — NO parent callbacks */}
           <RadiusController setLocalRadius={setLocalRadius} fromZoomRef={fromZoomRef} />
