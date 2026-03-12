@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { getBadges } from '../utils/badges'
 import NYCMiniMap from './NYCMiniMap'
 
@@ -188,6 +188,22 @@ function haversineKm(lat1, lon1, lat2, lon2) {
 function ResultContent({ result, onSharePin, searchCenter, searchRadius, onSearchArea, onReposition }) {
   const { location, cuisine, restaurants, enriching } = result
 
+  // ── Map ↔ list hover sync ────────────────────────────────────────────────────
+  // hoveredIndex = index into `displayed` array (null = none highlighted)
+  const [hoveredIndex, setHoveredIndex] = useState(null)
+  // Refs for each restaurant card so we can scroll-to on marker click
+  const cardRefsRef = useRef([])
+
+  const handleMarkerClick = useCallback((index) => {
+    const el = cardRefsRef.current[index]
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      setHoveredIndex(index)
+      // Briefly highlight, then release (so it's a "flash" rather than sticky)
+      setTimeout(() => setHoveredIndex(null), 1800)
+    }
+  }, [])
+
   // ── Favorites state ─────────────────────────────────────────────────────────
   const [favorites, setFavorites] = useState(loadFavorites)
 
@@ -316,6 +332,9 @@ function ResultContent({ result, onSharePin, searchCenter, searchRadius, onSearc
           radius={searchRadius}
           cuisineType={cuisine.cuisineType}
           onSearchArea={onSearchArea}
+          restaurants={displayed}
+          hoveredIndex={hoveredIndex}
+          onMarkerClick={handleMarkerClick}
         />
       </div>
 
@@ -406,7 +425,7 @@ function ResultContent({ result, onSharePin, searchCenter, searchRadius, onSearc
         ) : displayed.length > 0 ? (
           <div className="restaurant-list">
             {displayed.map((restaurant, i) => {
-              // Mark top pick: first card AND has a rating of 4.0+ 
+              // Mark top pick: first card AND has a rating of 4.0+
               const topRating = restaurant.googleRating ?? restaurant.stars
               const topPickEligible = i === 0 && topRating != null && topRating >= 4.0
               return (
@@ -418,6 +437,10 @@ function ResultContent({ result, onSharePin, searchCenter, searchRadius, onSearc
                   isFavorited={favIds.has(favId(restaurant))}
                   onToggleFavorite={() => toggleFavorite(restaurant)}
                   isTopPick={topPickEligible}
+                  isHighlighted={hoveredIndex === i}
+                  onHoverEnter={() => setHoveredIndex(i)}
+                  onHoverLeave={() => setHoveredIndex(null)}
+                  cardRef={(el) => { cardRefsRef.current[i] = el }}
                 />
               )
             })}
@@ -435,7 +458,7 @@ function ResultContent({ result, onSharePin, searchCenter, searchRadius, onSearc
   )
 }
 
-function RestaurantCard({ restaurant, index, searchCenter, isFavorited, onToggleFavorite, isTopPick }) {
+function RestaurantCard({ restaurant, index, searchCenter, isFavorited, onToggleFavorite, isTopPick, isHighlighted, onHoverEnter, onHoverLeave, cardRef }) {
   const badges = getBadges(restaurant.name)
   const hasBadges = badges.length > 0
 
@@ -450,13 +473,20 @@ function RestaurantCard({ restaurant, index, searchCenter, isFavorited, onToggle
 
   return (
     <div
-      className={`restaurant-card ${hasBadges ? 'restaurant-card--featured' : ''} ${isTopPick ? 'restaurant-card--top-pick' : ''}`}
+      ref={cardRef}
+      className={`restaurant-card ${hasBadges ? 'restaurant-card--featured' : ''} ${isTopPick ? 'restaurant-card--top-pick' : ''} ${isHighlighted ? 'restaurant-card--highlighted' : ''}`}
       style={{ animationDelay: `${index * 60}ms` }}
+      onMouseEnter={onHoverEnter}
+      onMouseLeave={onHoverLeave}
     >
       <div className="restaurant-card-accent" />
       <div className="restaurant-info">
         <div className="restaurant-header">
           <div className="restaurant-name-row">
+            {/* Map marker number badge */}
+            {restaurant.lat && restaurant.lon && (
+              <span className="map-marker-num" title={`Marker #${index + 1} on map`}>{index + 1}</span>
+            )}
             <h4 className="restaurant-name">{restaurant.name}</h4>
             {isTopPick && (
               <span className="top-pick-badge">⭐ Top Rated</span>

@@ -825,7 +825,7 @@
 .minimap-container {
   border-radius: var(--radius);
   overflow: hidden;
-  height: 180px;
+  height: 340px;
   border: 1px solid var(--border);
 }
 
@@ -977,6 +977,27 @@
   gap: 8px;
 }
 
+/* Numbered map marker badge on each restaurant card */
+.map-marker-num {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.restaurant-card--highlighted .map-marker-num {
+  background: #fff;
+  color: var(--accent);
+}
+
 .restaurant-name {
   font-size: 0.95rem;
   font-weight: 600;
@@ -1007,6 +1028,17 @@
 .restaurant-card--top-pick .restaurant-card-accent {
   opacity: 1;
   background: linear-gradient(to bottom, #f59e0b, var(--accent));
+}
+
+/* Highlighted card (map marker hover) */
+.restaurant-card--highlighted {
+  background: rgba(249, 115, 22, 0.08);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.3);
+}
+
+.restaurant-card--highlighted .restaurant-card-accent {
+  opacity: 1;
 }
 
 /* Header right: distance + rating + badges row */
@@ -1416,7 +1448,7 @@
   }
 
   .minimap-container {
-    height: 150px;
+    height: 260px;
   }
 
   .fav-btn {

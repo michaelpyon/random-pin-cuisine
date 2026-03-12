@@ -35,6 +35,10 @@ export default function App() {
   const toastTimerRef = useRef(null)
   // Guard against concurrent processPin calls (e.g. from accidental re-fires)
   const isSearchingRef = useRef(false)
+  // Monotonically-increasing counter: each new processPin/handleSearchArea call
+  // increments this. Async callbacks check they're still "current" before
+  // applying results — prevents stale enrichment from overwriting newer searches.
+  const searchVersionRef = useRef(0)
 
   const searchRestaurants = useCallback(async (cuisineInfo, center, radius) => {
     return findNYCRestaurants(cuisineInfo, {
@@ -48,6 +52,10 @@ export default function App() {
     // but this ref is a final safety net against any accidental re-entry.
     if (isSearchingRef.current) return
     isSearchingRef.current = true
+
+    // Each call gets a unique version ID. Any async step checks this before
+    // applying results, so stale in-flight callbacks can't corrupt newer state.
+    const myVersion = ++searchVersionRef.current
 
     setPin({ lat, lng })
     setResult(null)
@@ -69,6 +77,9 @@ export default function App() {
 
       const locationInfo = await reverseGeocode(lat, lng)
 
+      // Bail if a newer search has taken over while we were awaiting
+      if (searchVersionRef.current !== myVersion) return
+
       if (isOcean(lat, lng, locationInfo)) {
         setError(EDGE_CASE_MESSAGES.ocean)
         setLoading(false)
@@ -82,9 +93,14 @@ export default function App() {
       }
 
       const cuisineInfo = await classifyCuisine(locationInfo)
+
+      if (searchVersionRef.current !== myVersion) return
+
       lastCuisineRef.current = cuisineInfo
 
       const restaurants = await searchRestaurants(cuisineInfo, searchCenter, searchRadius)
+
+      if (searchVersionRef.current !== myVersion) return
 
       // Save to pin history
       const neighborhood =
@@ -110,22 +126,32 @@ export default function App() {
       }
       setResult(immediateResult)
 
-      // Kick off background enrichment WITHOUT awaiting (non-blocking)
+      // Kick off background enrichment WITHOUT awaiting (non-blocking).
+      // Check version before applying to avoid overwriting a newer search.
       if (restaurants.length > 0) {
         enrichRestaurants(restaurants).then((enriched) => {
+          if (searchVersionRef.current !== myVersion) return
           setResult((prev) =>
             prev ? { ...prev, restaurants: enriched, enriching: false } : null
           )
         }).catch(() => {
+          if (searchVersionRef.current !== myVersion) return
           setResult((prev) => prev ? { ...prev, enriching: false } : null)
         })
       }
     } catch (err) {
-      console.error('Pipeline error:', err)
-      setError(`Something went wrong: ${err.message}`)
+      // Only surface the error if this is still the active search
+      if (searchVersionRef.current === myVersion) {
+        console.error('Pipeline error:', err)
+        setError(`Something went wrong: ${err.message}`)
+      }
     } finally {
-      setLoading(false)
-      isSearchingRef.current = false
+      // Only release the lock if we're still the active version.
+      // A newer call should never be blocked by our cleanup.
+      if (searchVersionRef.current === myVersion) {
+        setLoading(false)
+        isSearchingRef.current = false
+      }
     }
   }, [searchCenter, searchRadius, searchRestaurants])
 
@@ -200,21 +226,28 @@ export default function App() {
     setSearchCenter(newCenter)
     setSearchRadius(newRadius)
     if (lastCuisineRef.current) {
+      // Increment the version so any in-flight processPin enrichment is ignored
+      const myVersion = ++searchVersionRef.current
       setLoading(true)
       try {
         const restaurants = await searchRestaurants(lastCuisineRef.current, newCenter, newRadius)
+        if (searchVersionRef.current !== myVersion) return
         setResult((prev) => prev ? { ...prev, restaurants, enriching: restaurants.length > 0 } : null)
         setLoading(false)
         if (restaurants.length > 0) {
           enrichRestaurants(restaurants).then((enriched) => {
+            if (searchVersionRef.current !== myVersion) return
             setResult((prev) => prev ? { ...prev, restaurants: enriched, enriching: false } : null)
           }).catch(() => {
+            if (searchVersionRef.current !== myVersion) return
             setResult((prev) => prev ? { ...prev, enriching: false } : null)
           })
         }
       } catch (err) {
-        console.error('Re-search error:', err)
-        setLoading(false)
+        if (searchVersionRef.current === myVersion) {
+          console.error('Re-search error:', err)
+          setLoading(false)
+        }
       }
     }
   }, [searchRestaurants])

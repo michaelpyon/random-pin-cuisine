@@ -14,6 +14,62 @@ const nycIcon = new L.Icon({
   shadowSize: [33, 33],
 })
 
+/** Create a numbered circle DivIcon for a restaurant marker */
+function createNumberedIcon(num, highlighted = false) {
+  const bg = highlighted ? '#ffffff' : '#f97316'
+  const color = highlighted ? '#f97316' : '#ffffff'
+  const border = highlighted ? '2.5px solid #f97316' : '2px solid rgba(255,255,255,0.4)'
+  const shadow = highlighted
+    ? '0 0 0 3px rgba(249,115,22,0.4), 0 2px 8px rgba(0,0,0,0.5)'
+    : '0 2px 6px rgba(0,0,0,0.45)'
+  return new L.DivIcon({
+    className: '',
+    html: `<div style="
+      width:28px;height:28px;border-radius:50%;
+      background:${bg};color:${color};
+      border:${border};
+      display:flex;align-items:center;justify-content:center;
+      font-size:11px;font-weight:700;font-family:'Inter',system-ui,sans-serif;
+      box-shadow:${shadow};
+      cursor:pointer;
+      transition:all 0.15s ease;
+    ">${num}</div>`,
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
+    popupAnchor: [0, -18],
+  })
+}
+
+/**
+ * Renders numbered markers for each restaurant that has coordinates.
+ * Clicking a marker calls onMarkerClick(index).
+ * Highlighted marker (hoveredIndex) renders with inverted colors.
+ */
+function RestaurantMarkers({ restaurants, hoveredIndex, onMarkerClick }) {
+  if (!restaurants || restaurants.length === 0) return null
+
+  return restaurants.map((r, i) => {
+    if (!r.lat || !r.lon) return null
+    const num = i + 1
+    const isHighlighted = hoveredIndex === i
+    const icon = createNumberedIcon(num, isHighlighted)
+
+    return (
+      <Marker
+        key={`r-${i}-${r.name}`}
+        position={[r.lat, r.lon]}
+        icon={icon}
+        eventHandlers={{
+          click() {
+            if (onMarkerClick) onMarkerClick(i)
+          },
+        }}
+        zIndexOffset={isHighlighted ? 1000 : 0}
+      />
+    )
+  })
+}
+
 /**
  * Updates local radius state on user zoom — PURELY LOCAL.
  * No callbacks to parent; no search is triggered.
@@ -128,8 +184,11 @@ const RADIUS_PRESETS = [
  *   radius        - initial radius (from last committed search)
  *   cuisineType   - displayed in the button label
  *   onSearchArea  - called with (center, radius) ONLY when button is clicked
+ *   restaurants   - array of restaurant objects with lat/lon for numbered markers
+ *   hoveredIndex  - index of currently hovered restaurant card (null = none)
+ *   onMarkerClick - called with index when a numbered marker is clicked
  */
-export default function NYCMiniMap({ center, radius, cuisineType, onSearchArea }) {
+export default function NYCMiniMap({ center, radius, cuisineType, onSearchArea, restaurants, hoveredIndex, onMarkerClick }) {
   // Local draft state — purely visual until user confirms
   const [localCenter, setLocalCenter] = useState(center || NYC_CENTER)
   const [localRadius, setLocalRadius] = useState(radius || 5000)
@@ -183,6 +242,12 @@ export default function NYCMiniMap({ center, radius, cuisineType, onSearchArea }
           {/* RadiusController only updates local state — NO parent callbacks */}
           <RadiusController setLocalRadius={setLocalRadius} fromZoomRef={fromZoomRef} />
           <FitToRadius center={localCenter} radius={localRadius} fromZoomRef={fromZoomRef} />
+          {/* Numbered restaurant markers */}
+          <RestaurantMarkers
+            restaurants={restaurants}
+            hoveredIndex={hoveredIndex}
+            onMarkerClick={onMarkerClick}
+          />
         </MapContainer>
       </div>
 
