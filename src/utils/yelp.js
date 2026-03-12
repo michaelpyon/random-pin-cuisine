@@ -26,14 +26,50 @@ export async function findNYCRestaurants(cuisineInfo, { center, radiusMeters } =
     results = await queryOverpassByNameRadius(cuisineType, searchCenter, radius)
   }
 
+  // All searches exhausted with no results — return a sentinel so the UI can
+  // show a clear "no match" message instead of an empty list.
   if (results.length === 0) {
-    return []
+    return { results: [], noMatch: true, cuisineType }
   }
 
   // Shuffle and format — return unenriched; caller can enrich in the background
   const shuffled = results.sort(() => Math.random() - 0.5)
   const formatted = shuffled.slice(0, 10).map(formatRestaurant)
   return formatted
+}
+
+/**
+ * Fallback search with NO cuisine filter — returns up to 10 nearby restaurants
+ * regardless of cuisine. Used as a last resort when no cuisine-matched results
+ * are found (e.g. "Search anyway" button).
+ */
+export async function findNYCRestaurantsUnfiltered({ center, radiusMeters } = {}) {
+  const searchCenter = center || NYC_CENTER
+  const radius = radiusMeters || DEFAULT_RADIUS
+
+  const query = `
+    [out:json][timeout:15];
+    (
+      node["amenity"="restaurant"](around:${radius},${searchCenter.lat},${searchCenter.lng});
+      way["amenity"="restaurant"](around:${radius},${searchCenter.lat},${searchCenter.lng});
+    );
+    out center 50;
+  `
+
+  try {
+    const res = await fetch(OVERPASS_URL, {
+      method: 'POST',
+      body: `data=${encodeURIComponent(query)}`,
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    })
+    if (!res.ok) return []
+    const data = await res.json()
+    const elements = (data.elements || []).filter((el) => el.tags?.name)
+    const shuffled = elements.sort(() => Math.random() - 0.5)
+    return shuffled.slice(0, 10).map(formatRestaurant)
+  } catch {
+    return []
+  }
 }
 
 /**
@@ -50,8 +86,8 @@ async function queryOverpassRadius(cuisineTag, center, radius) {
   const query = `
     [out:json][timeout:15];
     (
-      node["amenity"="restaurant"]["cuisine"~"${tag}",i](around:${radius},${center.lat},${center.lng});
-      way["amenity"="restaurant"]["cuisine"~"${tag}",i](around:${radius},${center.lat},${center.lng});
+      node["amenity"="restaurant"]["cuisine"~"(^|;) *${tag} *(;|$)",i](around:${radius},${center.lat},${center.lng});
+      way["amenity"="restaurant"]["cuisine"~"(^|;) *${tag} *(;|$)",i](around:${radius},${center.lat},${center.lng});
     );
     out center 50;
   `

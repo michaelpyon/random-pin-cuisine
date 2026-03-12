@@ -4,7 +4,7 @@ import ResultsPanel from './components/ResultsPanel'
 import PinHistory from './components/PinHistory'
 import { reverseGeocode, isOcean, isAntarctica, getRandomLandCoords } from './utils/geocode'
 import { classifyCuisine } from './utils/claude'
-import { findNYCRestaurants, enrichRestaurants } from './utils/yelp'
+import { findNYCRestaurants, findNYCRestaurantsUnfiltered, enrichRestaurants } from './utils/yelp'
 import { getPinHistory, addPinToHistory, clearPinHistory } from './utils/pinHistory'
 import './App.css'
 
@@ -98,9 +98,13 @@ export default function App() {
 
       lastCuisineRef.current = cuisineInfo
 
-      const restaurants = await searchRestaurants(cuisineInfo, searchCenter, searchRadius)
+      const rawSearchResult = await searchRestaurants(cuisineInfo, searchCenter, searchRadius)
 
       if (searchVersionRef.current !== myVersion) return
+
+      // Detect no-match sentinel returned by findNYCRestaurants
+      const isNoMatch = rawSearchResult && !Array.isArray(rawSearchResult) && rawSearchResult.noMatch
+      const restaurants = isNoMatch ? [] : rawSearchResult
 
       // Save to pin history
       const neighborhood =
@@ -122,6 +126,7 @@ export default function App() {
         location: { ...locationInfo, lat, lng },
         cuisine: cuisineInfo,
         restaurants,
+        noMatch: isNoMatch,
         enriching: restaurants.length > 0,
       }
       setResult(immediateResult)
@@ -230,9 +235,11 @@ export default function App() {
       const myVersion = ++searchVersionRef.current
       setLoading(true)
       try {
-        const restaurants = await searchRestaurants(lastCuisineRef.current, newCenter, newRadius)
+        const rawSearchResult = await searchRestaurants(lastCuisineRef.current, newCenter, newRadius)
         if (searchVersionRef.current !== myVersion) return
-        setResult((prev) => prev ? { ...prev, restaurants, enriching: restaurants.length > 0 } : null)
+        const isNoMatch = rawSearchResult && !Array.isArray(rawSearchResult) && rawSearchResult.noMatch
+        const restaurants = isNoMatch ? [] : rawSearchResult
+        setResult((prev) => prev ? { ...prev, restaurants, noMatch: isNoMatch, enriching: restaurants.length > 0 } : null)
         setLoading(false)
         if (restaurants.length > 0) {
           enrichRestaurants(restaurants).then((enriched) => {
@@ -251,6 +258,32 @@ export default function App() {
       }
     }
   }, [searchRestaurants])
+
+  // "Search anyway" — ignores cuisine filter and returns any nearby restaurants
+  const handleSearchAnyway = useCallback(async () => {
+    const myVersion = ++searchVersionRef.current
+    setLoading(true)
+    try {
+      const restaurants = await findNYCRestaurantsUnfiltered({ center: searchCenter, radiusMeters: searchRadius })
+      if (searchVersionRef.current !== myVersion) return
+      setResult((prev) => prev ? { ...prev, restaurants, noMatch: false, enriching: restaurants.length > 0 } : null)
+      setLoading(false)
+      if (restaurants.length > 0) {
+        enrichRestaurants(restaurants).then((enriched) => {
+          if (searchVersionRef.current !== myVersion) return
+          setResult((prev) => prev ? { ...prev, restaurants: enriched, enriching: false } : null)
+        }).catch(() => {
+          if (searchVersionRef.current !== myVersion) return
+          setResult((prev) => prev ? { ...prev, enriching: false } : null)
+        })
+      }
+    } catch (err) {
+      if (searchVersionRef.current === myVersion) {
+        console.error('Search anyway error:', err)
+        setLoading(false)
+      }
+    }
+  }, [searchCenter, searchRadius])
 
   const handleHistoryClear = useCallback(() => {
     const cleared = clearPinHistory()
@@ -367,6 +400,7 @@ export default function App() {
         searchCenter={searchCenter}
         searchRadius={searchRadius}
         onSearchArea={handleSearchArea}
+        onSearchAnyway={handleSearchAnyway}
         onReposition={handleReposition}
       />
     </div>

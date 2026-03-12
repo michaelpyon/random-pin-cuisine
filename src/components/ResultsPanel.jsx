@@ -72,7 +72,7 @@ function RatingDisplay({ googleRating, googleReviewCount, googlePriceLevel, osmS
 }
 
 // ── Main panel ────────────────────────────────────────────────────────────────
-export default function ResultsPanel({ result, loading, error, onClose, onSharePin, shareToast, searchCenter, searchRadius, onSearchArea, onReposition }) {
+export default function ResultsPanel({ result, loading, error, onClose, onSharePin, shareToast, searchCenter, searchRadius, onSearchArea, onSearchAnyway, onReposition }) {
   if (!loading && !result && !error) return null
 
   return (
@@ -101,6 +101,7 @@ export default function ResultsPanel({ result, loading, error, onClose, onShareP
           searchCenter={searchCenter}
           searchRadius={searchRadius}
           onSearchArea={onSearchArea}
+          onSearchAnyway={onSearchAnyway}
           onReposition={onReposition}
         />
       )}
@@ -185,8 +186,8 @@ function haversineKm(lat1, lon1, lat2, lon2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 }
 
-function ResultContent({ result, onSharePin, searchCenter, searchRadius, onSearchArea, onReposition }) {
-  const { location, cuisine, restaurants, enriching } = result
+function ResultContent({ result, onSharePin, searchCenter, searchRadius, onSearchArea, onSearchAnyway, onReposition }) {
+  const { location, cuisine, restaurants, noMatch, enriching } = result
 
   // ── Map ↔ list hover sync ────────────────────────────────────────────────────
   // hoveredIndex = index into `displayed` array (null = none highlighted)
@@ -444,6 +445,19 @@ function ResultContent({ result, onSharePin, searchCenter, searchRadius, onSearc
                 />
               )
             })}
+          </div>
+        ) : noMatch ? (
+          <div className="no-match-box">
+            <p className="no-match-emoji">🍁</p>
+            <p className="no-match">No {cuisine.cuisineType} restaurants found nearby.</p>
+            <p className="no-match-hint">
+              Try expanding the search radius above, then click Search This Area — or search for any restaurant nearby.
+            </p>
+            {onSearchAnyway && (
+              <button className="search-anyway-btn" onClick={onSearchAnyway}>
+                Search anyway (any cuisine)
+              </button>
+            )}
           </div>
         ) : (
           <div className="no-match-box">

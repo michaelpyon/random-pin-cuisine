@@ -1170,6 +1170,24 @@
   margin-top: 4px;
 }
 
+.search-anyway-btn {
+  margin-top: 12px;
+  padding: 8px 16px;
+  background: var(--bg-elevated, #2a2a2a);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.search-anyway-btn:hover {
+  background: var(--accent, #4f9cf9);
+  color: #fff;
+  border-color: transparent;
+}
+
 /* Desktop: side panel instead of bottom sheet */
 @media (min-width: 768px) {
   .results-panel {

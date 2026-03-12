@@ -163,7 +163,7 @@ const CUISINE_DB = {
   cm: { cuisineType: 'Cameroonian', description: 'Ndolé, eru, and grilled fish — Central and West African flavors merge in delicious ways.', osmCuisineTag: 'cameroonian', osmFallbackTag: 'african' },
   us: { cuisineType: 'American', description: 'BBQ, burgers, soul food, Tex-Mex, and a million immigrant traditions mashed into something beautiful.', osmCuisineTag: 'american', osmFallbackTag: null },
   mx: { cuisineType: 'Mexican', description: 'Tacos, mole, tamales, and elote. Mexican food is UNESCO-recognized for a reason — it\'s unmatched.', osmCuisineTag: 'mexican', osmFallbackTag: null },
-  ca: { cuisineType: 'Canadian', description: 'Poutine is just the gateway. Butter tarts, tourtière, and Nanaimo bars represent a surprisingly rich food scene.', osmCuisineTag: 'canadian', osmFallbackTag: 'american' },
+  ca: { cuisineType: 'Canadian', description: 'Poutine is just the gateway. Butter tarts, tourtière, and Nanaimo bars represent a surprisingly rich food scene.', osmCuisineTag: 'canadian', osmFallbackTag: null },
   cu: { cuisineType: 'Cuban', description: 'Ropa vieja, Cuban sandwiches, and black beans and rice. Havana flavors that\'ll make you dance.', osmCuisineTag: 'cuban', osmFallbackTag: 'caribbean' },
   jm: { cuisineType: 'Jamaican', description: 'Jerk chicken that\'ll set your mouth on fire in the best way. Plus ackee and saltfish for breakfast.', osmCuisineTag: 'jamaican', osmFallbackTag: 'caribbean' },
   pr: { cuisineType: 'Puerto Rican', description: 'Mofongo, lechón, and arroz con gandules. Boricua food is a fiesta on every plate.', osmCuisineTag: 'puerto_rican', osmFallbackTag: 'caribbean' },
