@@ -638,7 +638,7 @@
 
 .coordinates {
   font-size: 0.8rem;
-  color: var(--text-muted);
+  color: #9ca3af;
   font-family: 'SF Mono', 'Fira Code', monospace;
   margin-top: 2px;
 }
