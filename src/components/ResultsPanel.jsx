@@ -294,9 +294,9 @@ function ResultContent({ result, onSharePin, searchCenter, searchRadius, onSearc
               <button
                 className="reposition-btn"
                 onClick={onReposition}
-                title="Pan map and re-drop the pin"
+                title="Recenter map on your pin"
               >
-                🔄 Reposition
+                🔄 Recenter
               </button>
             )}
             <button
