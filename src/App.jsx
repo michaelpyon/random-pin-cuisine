@@ -205,20 +205,45 @@ export default function App() {
     window.history.replaceState({}, '', url.toString())
   }, [])
 
-  // Share pin: encode lat/lng into URL + copy to clipboard
+  // Share pin: compose tweet with cuisine + location, then fallback to clipboard
   const handleSharePin = useCallback(() => {
     if (!result) return
     const { lat, lng } = result.location
+
+    // Build the shareable URL
     const url = new URL(window.location.href)
     url.searchParams.set('lat', lat.toFixed(4))
     url.searchParams.set('lng', lng.toFixed(4))
     const shareUrl = url.toString()
-    // Update browser URL bar
     window.history.replaceState({}, '', shareUrl)
-    // Copy to clipboard
+
+    // Build tweet text with cuisine and location
+    const loc = result.location
+    const neighborhood = loc.city || loc.county || loc.state || loc.country || 'NYC'
+    const cuisineType = result.cuisine?.cuisineType || 'a cuisine'
+    const shareText = `I dropped a pin on ${neighborhood} and found ${cuisineType} in NYC 🍽️📍`
+
+    // 1. Try Web Share API
+    if (navigator.share) {
+      navigator.share({
+        title: 'Random Pin Cuisine',
+        text: shareText,
+        url: shareUrl,
+      }).catch(() => {
+        // User cancelled or API failed — fall through silently
+      })
+      return
+    }
+
+    // 2. Fall back to Twitter intent
+    const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`
+    window.open(tweetUrl, '_blank', 'noopener,noreferrer')
+
+    // 3. Also copy URL to clipboard as third option
     if (navigator.clipboard) {
       navigator.clipboard.writeText(shareUrl).catch(() => {})
     }
+
     // Show toast
     setShareToast(true)
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current)

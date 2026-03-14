@@ -88,7 +88,7 @@ export default function ResultsPanel({ result, loading, error, onClose, onShareP
       {/* Share toast */}
       {shareToast && (
         <div className="share-toast" role="status">
-          ✅ Link copied to clipboard!
+          ✅ Shared! Link copied to clipboard.
         </div>
       )}
 
