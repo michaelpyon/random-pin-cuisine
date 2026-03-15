@@ -187,10 +187,29 @@ export default function App() {
     setError(null)
   }, [])
 
-  const handleRandomPin = useCallback(() => {
+  const handleRandomPin = useCallback(async () => {
     setRepositioning(false)
-    const { lat, lng } = getRandomLandCoords()
-    processPin(lat, lng)
+    // getRandomLandCoords() uses a curated city list so ocean hits should never
+    // happen, but we retry up to 4 times silently just in case an offset nudges
+    // a coastal city into water. Each retry picks a fresh random city.
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const { lat, lng } = getRandomLandCoords()
+      // Quick pre-check: if geocode returns null it's ocean — re-roll silently.
+      // On the last attempt just let processPin handle it normally (shows error).
+      if (attempt < 3) {
+        try {
+          const locationInfo = await reverseGeocode(lat, lng)
+          if (isOcean(lat, lng, locationInfo)) continue // re-roll
+          // Land confirmed — hand off to processPin with the validated coords
+          processPin(lat, lng)
+          return
+        } catch {
+          // Network error on pre-check — fall through to processPin
+        }
+      }
+      processPin(lat, lng)
+      return
+    }
   }, [processPin])
 
   const handleClose = useCallback(() => {
