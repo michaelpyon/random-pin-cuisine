@@ -1,6 +1,7 @@
-// NYC restaurant search using Overpass API (OpenStreetMap) — completely free, no API key
-import { enrichWithGooglePlaces } from './googlePlaces'
-const OVERPASS_URL = 'https://overpass-api.de/api/interpreter'
+// Query the app's backend proxy instead of calling rate-limited providers
+// directly from the browser. This keeps keys server-side and makes results
+// cacheable across users.
+const FIND_RESTAURANTS_URL = '/api/find-restaurants'
 
 // Default NYC center (Midtown Manhattan)
 const NYC_CENTER = { lat: 40.7580, lng: -73.9855 }
@@ -13,29 +14,29 @@ export async function findNYCRestaurants(cuisineInfo, { center, radiusMeters } =
   const searchCenter = center || NYC_CENTER
   const radius = radiusMeters || DEFAULT_RADIUS
 
-  // Try primary cuisine tag first
-  let results = await queryOverpassRadius(osmCuisineTag, searchCenter, radius)
+  const params = new URLSearchParams({
+    lat: searchCenter.lat.toString(),
+    lng: searchCenter.lng.toString(),
+    radius: radius.toString(),
+    cuisineTag: osmCuisineTag,
+    cuisineType,
+  })
 
-  // Fallback: try a broader/simpler tag
-  if (results.length === 0 && cuisineInfo.osmFallbackTag) {
-    results = await queryOverpassRadius(cuisineInfo.osmFallbackTag, searchCenter, radius)
+  if (cuisineInfo.osmFallbackTag) {
+    params.set('fallbackTag', cuisineInfo.osmFallbackTag)
   }
 
-  // Second fallback: search by name substring
-  if (results.length === 0) {
-    results = await queryOverpassByNameRadius(cuisineType, searchCenter, radius)
+  const res = await fetch(`${FIND_RESTAURANTS_URL}?${params}`)
+  if (!res.ok) {
+    throw new Error('Restaurant search failed')
   }
 
-  // All searches exhausted with no results — return a sentinel so the UI can
-  // show a clear "no match" message instead of an empty list.
-  if (results.length === 0) {
+  const data = await res.json()
+  if (data.noMatch) {
     return { results: [], noMatch: true, cuisineType }
   }
 
-  // Shuffle and format — return unenriched; caller can enrich in the background
-  const shuffled = results.sort(() => Math.random() - 0.5)
-  const formatted = shuffled.slice(0, 10).map(formatRestaurant)
-  return formatted
+  return data.results || []
 }
 
 /**
@@ -47,29 +48,19 @@ export async function findNYCRestaurantsUnfiltered({ center, radiusMeters } = {}
   const searchCenter = center || NYC_CENTER
   const radius = radiusMeters || DEFAULT_RADIUS
 
-  const query = `
-    [out:json][timeout:15];
-    (
-      node["amenity"="restaurant"](around:${radius},${searchCenter.lat},${searchCenter.lng});
-      way["amenity"="restaurant"](around:${radius},${searchCenter.lat},${searchCenter.lng});
-    );
-    out center 50;
-  `
+  const params = new URLSearchParams({
+    lat: searchCenter.lat.toString(),
+    lng: searchCenter.lng.toString(),
+    radius: radius.toString(),
+    unfiltered: '1',
+  })
 
-  try {
-    const res = await fetch(OVERPASS_URL, {
-      method: 'POST',
-      body: `data=${encodeURIComponent(query)}`,
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    })
-    if (!res.ok) return []
-    const data = await res.json()
-    const elements = (data.elements || []).filter((el) => el.tags?.name)
-    const shuffled = elements.sort(() => Math.random() - 0.5)
-    return shuffled.slice(0, 10).map(formatRestaurant)
-  } catch {
+  const res = await fetch(`${FIND_RESTAURANTS_URL}?${params}`)
+  if (!res.ok) {
     return []
   }
+  const data = await res.json()
+  return data.results || []
 }
 
 /**
@@ -77,120 +68,6 @@ export async function findNYCRestaurantsUnfiltered({ center, radiusMeters } = {}
  * Exported separately so App.jsx can call it after displaying results.
  */
 export async function enrichRestaurants(restaurants) {
-  return enrichWithGooglePlaces(restaurants)
-}
-
-async function queryOverpassRadius(cuisineTag, center, radius) {
-  const tag = cuisineTag.toLowerCase().replace(/\s+/g, '_')
-
-  const query = `
-    [out:json][timeout:15];
-    (
-      node["amenity"="restaurant"]["cuisine"~"(^|;) *${tag} *(;|$)",i](around:${radius},${center.lat},${center.lng});
-      way["amenity"="restaurant"]["cuisine"~"(^|;) *${tag} *(;|$)",i](around:${radius},${center.lat},${center.lng});
-    );
-    out center 50;
-  `
-
-  try {
-    const res = await fetch(OVERPASS_URL, {
-      method: 'POST',
-      body: `data=${encodeURIComponent(query)}`,
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    })
-
-    if (!res.ok) return []
-
-    const data = await res.json()
-    return (data.elements || []).filter((el) => el.tags?.name)
-  } catch {
-    return []
-  }
-}
-
-async function queryOverpassByNameRadius(searchTerm, center, radius) {
-  const query = `
-    [out:json][timeout:15];
-    (
-      node["amenity"="restaurant"]["name"~"${searchTerm}",i](around:${radius},${center.lat},${center.lng});
-      way["amenity"="restaurant"]["name"~"${searchTerm}",i](around:${radius},${center.lat},${center.lng});
-    );
-    out center 20;
-  `
-
-  try {
-    const res = await fetch(OVERPASS_URL, {
-      method: 'POST',
-      body: `data=${encodeURIComponent(query)}`,
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    })
-
-    if (!res.ok) return []
-
-    const data = await res.json()
-    return (data.elements || []).filter((el) => el.tags?.name)
-  } catch {
-    return []
-  }
-}
-
-function parseStars(tags) {
-  // Check known OSM rating tags in order of preference
-  const raw =
-    tags['stars'] ||
-    tags['rating'] ||
-    tags['cuisine:stars'] ||
-    tags['michelin:stars'] ||
-    tags['survey:stars'] ||
-    null
-
-  if (!raw) return null
-
-  const parsed = parseFloat(raw)
-  if (isNaN(parsed)) return null
-  return Math.min(5, Math.max(0, parsed))
-}
-
-function formatRestaurant(element) {
-  const tags = element.tags || {}
-  const lat = element.lat || element.center?.lat
-  const lon = element.lon || element.center?.lon
-
-  const neighborhood =
-    tags['addr:neighbourhood'] ||
-    tags['addr:suburb'] ||
-    tags['addr:city'] ||
-    tags['addr:district'] ||
-    null
-
-  const street = tags['addr:street'] || ''
-  const housenumber = tags['addr:housenumber'] || ''
-  const address = housenumber && street
-    ? `${housenumber} ${street}`
-    : street || null
-
-  const cuisine = tags.cuisine
-    ? tags.cuisine.split(';').map((c) => c.trim().replace(/_/g, ' ')).map(
-        (c) => c.charAt(0).toUpperCase() + c.slice(1)
-      )
-    : []
-
-  const stars = parseStars(tags)
-
-  return {
-    name: tags.name,
-    cuisine: cuisine,
-    neighborhood,
-    address,
-    phone: tags.phone || tags['contact:phone'] || null,
-    website: tags.website || tags['contact:website'] || null,
-    openingHours: tags.opening_hours || null,
-    stars,
-    lat,
-    lon,
-    osmLink: `https://www.openstreetmap.org/${element.type}/${element.id}`,
-    googleMapsLink: tags.name
-      ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(tags.name + (address ? ', ' + address + ', New York, NY' : ', New York, NY'))}`
-      : null,
-  }
+  // Results now come back from the backend already enriched and cached.
+  return restaurants
 }

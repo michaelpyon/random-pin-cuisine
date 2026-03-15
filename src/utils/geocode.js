@@ -1,18 +1,10 @@
-const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/reverse'
-
 export async function reverseGeocode(lat, lng) {
-  // Use higher zoom for more specific location data (city/town level)
   const params = new URLSearchParams({
     lat: lat.toString(),
-    lon: lng.toString(),
-    format: 'json',
-    'accept-language': 'en',
-    zoom: 10,
+    lng: lng.toString(),
   })
 
-  const res = await fetch(`${NOMINATIM_URL}?${params}`, {
-    headers: { 'User-Agent': 'RandomPinCuisineFinder/1.0' },
-  })
+  const res = await fetch(`/api/reverse-geocode?${params}`)
 
   if (!res.ok) {
     throw new Error('Geocoding failed')
@@ -20,19 +12,11 @@ export async function reverseGeocode(lat, lng) {
 
   const data = await res.json()
 
-  if (data.error) {
+  if (data.location == null) {
     return null
   }
 
-  return {
-    displayName: data.display_name,
-    country: data.address?.country,
-    countryCode: data.address?.country_code,
-    state: data.address?.state,
-    city: data.address?.city || data.address?.town || data.address?.village,
-    county: data.address?.county,
-    region: data.address?.region,
-  }
+  return data.location
 }
 
 export function isOcean(lat, lng, geocodeResult) {
