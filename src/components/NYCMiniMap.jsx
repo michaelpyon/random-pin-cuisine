@@ -97,6 +97,23 @@ function RadiusController({ setLocalRadius, fromZoomRef }) {
 }
 
 /**
+ * Compute a LatLngBounds for a circle defined by center + radiusMeters.
+ *
+ * We do NOT use L.circle().getBounds() here because in Leaflet 1.9.x
+ * `CircleMarker.getBounds()` calls `this._map.layerPointToLatLng(...)`,
+ * which throws when the circle hasn't been added to a map. Instead we
+ * compute the bounding box directly with Earth-geometry math.
+ */
+function circleLatLngBounds(lat, lng, radiusMeters) {
+  const latDelta = radiusMeters / 111320 // 1° lat ≈ 111.32 km
+  const lngDelta = radiusMeters / (111320 * Math.cos(lat * (Math.PI / 180)))
+  return L.latLngBounds(
+    [lat - latDelta, lng - lngDelta],
+    [lat + latDelta, lng + lngDelta],
+  )
+}
+
+/**
  * Fit map to circle bounds when radius changes via preset button or
  * parent prop sync. Skipped when the change originated from a user zoom
  * (the map is already at the correct zoom level in that case).
@@ -116,8 +133,10 @@ function FitToRadius({ center, radius, fromZoomRef }) {
     }
 
     if (Math.abs(prevRadius.current - radius) > 200) {
-      const circle = L.circle([center.lat, center.lng], { radius })
-      map.fitBounds(circle.getBounds(), { padding: [20, 20], animate: false })
+      // Use our own bounds helper — NOT L.circle().getBounds() which
+      // requires the circle to be on a map (crashes with undefined _map).
+      const bounds = circleLatLngBounds(center.lat, center.lng, radius)
+      map.fitBounds(bounds, { padding: [20, 20], animate: false })
       prevRadius.current = radius
     }
   }, [radius, center, map]) // eslint-disable-line react-hooks/exhaustive-deps
