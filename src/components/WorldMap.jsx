@@ -146,6 +146,7 @@ export default function WorldMap({ pin, onMapClick, showCrosshair, onDropPin, on
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
+          eventHandlers={{ add: (e) => { e.target.getContainer()?.querySelectorAll('img:not([alt])').forEach(img => img.alt = '') } }}
         />
         <ZoomControl position="bottomright" />
         <MapClickHandler onMapClick={onMapClick} />
