@@ -1,4 +1,4 @@
-import { withCache } from './_lib/cache.js'
+import { withCache } from './_lib/redis-cache.js'
 
 const OVERPASS_URL = 'https://overpass-api.de/api/interpreter'
 const OVERPASS_TTL_MS = 1000 * 60 * 60

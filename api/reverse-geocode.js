@@ -1,4 +1,4 @@
-import { withCache } from './_lib/cache.js'
+import { withCache } from './_lib/redis-cache.js'
 
 const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/reverse'
 const CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 7
