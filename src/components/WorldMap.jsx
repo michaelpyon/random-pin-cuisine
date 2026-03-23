@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { MapContainer, TileLayer, Marker, Tooltip, ZoomControl, useMapEvents, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import LeafletSizeInvalidator from './LeafletSizeInvalidator'
 
 // Custom branded orange pin icon
 const pinIcon = new L.DivIcon({
@@ -116,16 +117,20 @@ export default function WorldMap({ pin, onMapClick, showCrosshair, onDropPin, on
   const [showDragTip, setShowDragTip] = useState(false)
   const prevPinRef   = useRef(null)
   const shownTipRef  = useRef(false)
+  const showTipTimerRef = useRef(null)
   const tipTimerRef  = useRef(null)
 
   useEffect(() => {
     if (pin && !prevPinRef.current && !shownTipRef.current) {
       shownTipRef.current = true
-      setShowDragTip(true)
+      showTipTimerRef.current = setTimeout(() => setShowDragTip(true), 0)
       tipTimerRef.current = setTimeout(() => setShowDragTip(false), 2800)
     }
     prevPinRef.current = pin
-    return () => { if (tipTimerRef.current) clearTimeout(tipTimerRef.current) }
+    return () => {
+      if (showTipTimerRef.current) clearTimeout(showTipTimerRef.current)
+      if (tipTimerRef.current) clearTimeout(tipTimerRef.current)
+    }
   }, [pin])
 
   const handleDropPin = () => {
@@ -143,6 +148,7 @@ export default function WorldMap({ pin, onMapClick, showCrosshair, onDropPin, on
         zoomControl={false}
         attributionControl={false}
       >
+        <LeafletSizeInvalidator />
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'

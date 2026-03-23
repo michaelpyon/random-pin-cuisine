@@ -16,7 +16,9 @@ function loadFavorites() {
 function saveFavorites(favs) {
   try {
     localStorage.setItem(FAV_KEY, JSON.stringify(favs))
-  } catch {}
+  } catch {
+    // Ignore localStorage write failures so saving never breaks the UI.
+  }
 }
 
 function favId(restaurant) {
@@ -28,11 +30,15 @@ function StarDisplay({ stars }) {
   if (stars === null || stars === undefined) {
     return null
   }
-  const full = Math.floor(stars)
-  const empty = 5 - full
+
+  const full = Math.round(Number(stars))
+  if (!Number.isFinite(full) || full <= 0) {
+    return null
+  }
+
   return (
-    <span className="restaurant-stars" title={`${stars} / 5 stars`}>
-      {'★'.repeat(full)}{'☆'.repeat(empty)}
+    <span className="restaurant-stars" title={`${full} star${full === 1 ? '' : 's'}`}>
+      {'★'.repeat(full)}
     </span>
   )
 }
@@ -43,22 +49,19 @@ function StarDisplay({ stars }) {
  *   ★★★★☆ 4.2 · 312 reviews  $$$
  */
 function RatingDisplay({ googleRating, googleReviewCount, googlePriceLevel, osmStars }) {
-  const rating = googleRating ?? osmStars
-
-  // No data at all — render nothing (don't clutter every card with "No rating")
-  if (rating === null || rating === undefined) {
-    return null
+  if (googleRating == null) {
+    return <StarDisplay stars={osmStars} />
   }
 
-  const full = Math.floor(rating)
+  const full = Math.floor(googleRating)
   const empty = 5 - full
 
   return (
     <span className="restaurant-rating-row">
-      <span className="restaurant-stars" title={`${Number(rating).toFixed(1)} / 5 stars`}>
+      <span className="restaurant-stars" title={`${Number(googleRating).toFixed(1)} / 5 stars`}>
         {'★'.repeat(full)}{'☆'.repeat(empty)}
       </span>
-      <span className="restaurant-rating-value">{Number(rating).toFixed(1)}</span>
+      <span className="restaurant-rating-value">{Number(googleRating).toFixed(1)}</span>
       {googleReviewCount != null && (
         <span className="restaurant-review-count">
           · {googleReviewCount.toLocaleString()} reviews

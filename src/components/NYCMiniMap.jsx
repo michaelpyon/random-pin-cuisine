@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { MapContainer, TileLayer, Circle, Marker, useMap, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import LeafletSizeInvalidator from './LeafletSizeInvalidator'
 
 const NYC_CENTER = { lat: 40.7580, lng: -73.9855 }
 
@@ -215,11 +216,17 @@ export default function NYCMiniMap({ center, radius, cuisineType, onSearchArea, 
 
   // Sync local state when parent resets (e.g. new pin dropped → new cuisine)
   useEffect(() => {
-    setLocalCenter(center || NYC_CENTER)
+    const frame = window.requestAnimationFrame(() => {
+      setLocalCenter(center || NYC_CENTER)
+    })
+    return () => window.cancelAnimationFrame(frame)
   }, [center])
 
   useEffect(() => {
-    setLocalRadius(radius || 5000)
+    const frame = window.requestAnimationFrame(() => {
+      setLocalRadius(radius || 5000)
+    })
+    return () => window.cancelAnimationFrame(frame)
   }, [radius])
 
   const radiusKm = (localRadius / 1000).toFixed(localRadius % 1000 === 0 ? 0 : 1)
@@ -243,6 +250,7 @@ export default function NYCMiniMap({ center, radius, cuisineType, onSearchArea, 
           attributionControl={false}
           scrollWheelZoom={true}
         >
+          <LeafletSizeInvalidator />
           <TileLayer
             url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
             eventHandlers={{ add: (e) => { e.target.getContainer()?.querySelectorAll('img:not([alt])').forEach(img => img.alt = '') } }}

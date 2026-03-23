@@ -33,8 +33,6 @@ export default function App() {
   // Keep a ref to the latest cuisine so re-searches can use it
   const lastCuisineRef = useRef(null)
   const toastTimerRef = useRef(null)
-  // Guard against concurrent processPin calls (e.g. from accidental re-fires)
-  const isSearchingRef = useRef(false)
   // Monotonically-increasing counter: each new processPin/handleSearchArea call
   // increments this. Async callbacks check they're still "current" before
   // applying results — prevents stale enrichment from overwriting newer searches.
@@ -48,15 +46,11 @@ export default function App() {
   }, [])
 
   const processPin = useCallback(async (lat, lng) => {
-    // Prevent concurrent calls — map events (zoom/pan) must never reach here,
-    // but this ref is a final safety net against any accidental re-entry.
-    if (isSearchingRef.current) return
-    isSearchingRef.current = true
-
     // Each call gets a unique version ID. Any async step checks this before
     // applying results, so stale in-flight callbacks can't corrupt newer state.
     const myVersion = ++searchVersionRef.current
 
+    lastCuisineRef.current = null
     setPin({ lat, lng })
     setResult(null)
     setError(null)
@@ -151,11 +145,8 @@ export default function App() {
         setError(`Something went wrong: ${err.message}`)
       }
     } finally {
-      // Only release the lock if we're still the active version.
-      // A newer call should never be blocked by our cleanup.
       if (searchVersionRef.current === myVersion) {
         setLoading(false)
-        isSearchingRef.current = false
       }
     }
   }, [searchCenter, searchRadius, searchRestaurants])
@@ -213,6 +204,8 @@ export default function App() {
   }, [processPin])
 
   const handleClose = useCallback(() => {
+    searchVersionRef.current += 1
+    lastCuisineRef.current = null
     setResult(null)
     setError(null)
     setLoading(false)
