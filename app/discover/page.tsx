@@ -55,7 +55,7 @@ export default async function DiscoverPage({ searchParams }: DiscoverPageProps) 
 
   if (!discovery) {
     return (
-      <main className="discover-page min-h-screen bg-slate-900 flex items-center justify-center">
+      <main className="discover-page min-h-screen bg-bg flex items-center justify-center">
         <div className="text-center px-6">
           <h1 className="text-2xl font-bold text-white mb-4">
             Discovery not found

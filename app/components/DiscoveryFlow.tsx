@@ -383,7 +383,7 @@ export default function DiscoveryFlow({
                 <p className="text-xs text-slate-500 uppercase tracking-wider font-medium mb-1">
                   Pin dropped near
                 </p>
-                <p className="text-slate-200 font-medium">
+                <p className="text-text font-medium">
                   {location.displayName}
                 </p>
                 <p className="text-slate-500 text-xs mt-0.5">
@@ -411,7 +411,7 @@ export default function DiscoveryFlow({
             {/* Cultural blurb */}
             {cuisine.culturalBlurb && (
               <div
-                className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50 animate-fade-in"
+                className="bg-surface-high/50 rounded-xl p-4 border border-border animate-fade-in"
                 style={{ animationDelay: '600ms' }}
               >
                 <p className="text-slate-300 text-sm leading-relaxed italic">

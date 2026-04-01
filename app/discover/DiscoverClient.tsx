@@ -81,7 +81,7 @@ export default function DiscoverClient({ discovery }: DiscoverClientProps) {
   }, [discovery]);
 
   return (
-    <main className="discover-page min-h-screen bg-slate-900">
+    <main className="discover-page min-h-screen bg-bg">
       {/* Hero section with mini map */}
       <div className="relative h-64 sm:h-80 overflow-hidden">
         <div className="absolute inset-0">
@@ -107,13 +107,13 @@ export default function DiscoverClient({ discovery }: DiscoverClientProps) {
         </div>
 
         {/* Cuisine name */}
-        <h1 className="text-4xl sm:text-5xl font-extrabold text-orange-400 leading-tight mb-4 animate-fade-in" style={{ animationDelay: '100ms' }}>
+        <h1 className="text-4xl sm:text-5xl font-extrabold text-accent leading-tight mb-4 animate-fade-in font-headline" style={{ animationDelay: '100ms' }}>
           {discovery.cuisine}
         </h1>
 
         {/* Cultural blurb */}
         {discovery.culturalBlurb && (
-          <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50 mb-8 animate-fade-in" style={{ animationDelay: '200ms' }}>
+          <div className="bg-surface-high/50 rounded-xl p-4 border border-border mb-8 animate-fade-in" style={{ animationDelay: '200ms' }}>
             <p className="text-slate-300 text-sm leading-relaxed italic">
               &ldquo;{discovery.culturalBlurb}&rdquo;
             </p>

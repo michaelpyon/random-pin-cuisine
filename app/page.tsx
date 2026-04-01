@@ -100,10 +100,11 @@ export default function HomePage() {
         <header className="absolute top-0 left-0 right-0 z-20 pointer-events-none">
           <div className="flex items-center justify-between px-4 sm:px-6 py-4">
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-white drop-shadow-lg">
-                <span className="text-orange-400">Random Pin</span>
+              <h1 className="text-xl sm:text-2xl font-bold text-white drop-shadow-lg font-headline">
+                <span className="text-accent">Random Pin</span>{' '}
+                <span className="text-text">Cuisine</span>
               </h1>
-              <p className="text-xs sm:text-sm text-slate-300 drop-shadow mt-0.5">
+              <p className="text-xs sm:text-sm text-muted drop-shadow mt-0.5">
                 Drop a pin anywhere. Find that cuisine in NYC.
               </p>
             </div>
@@ -116,9 +117,9 @@ export default function HomePage() {
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-3">
           {/* First-visit hint */}
           {!hasDroppedPin && (
-            <div className="bg-slate-800/90 backdrop-blur-sm text-slate-200 px-4 py-3 rounded-xl text-center text-sm max-w-xs animate-fade-in shadow-xl border border-slate-700/50">
+            <div className="bg-surface/90 backdrop-blur-sm text-text px-4 py-3 rounded-xl text-center text-sm max-w-xs animate-fade-in shadow-xl border border-border">
               <p className="font-medium">Click anywhere on the globe</p>
-              <p className="text-slate-400 text-xs mt-1">
+              <p className="text-subtle text-xs mt-1">
                 or tap Random Pin to start
               </p>
             </div>
@@ -126,11 +127,11 @@ export default function HomePage() {
 
           <button
             onClick={handleRandomPin}
-            className="flex items-center gap-2 px-6 py-3.5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-semibold rounded-2xl transition-all shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 hover:scale-[1.02] active:scale-[0.98]"
+            className="flex items-center gap-2 px-6 py-3.5 bg-accent hover:bg-accent-hover active:brightness-90 text-white font-semibold rounded-2xl transition-all shadow-lg shadow-accent/25 hover:shadow-accent/40 hover:scale-[1.02] active:scale-[0.98]"
           >
             <span className="text-lg">🎲</span>
             Random Pin
-            <kbd className="hidden sm:inline-block ml-2 px-1.5 py-0.5 bg-orange-600/50 rounded text-xs font-mono">
+            <kbd className="hidden sm:inline-block ml-2 px-1.5 py-0.5 bg-accent-hover/50 rounded text-xs font-mono">
               R
             </kbd>
           </button>
