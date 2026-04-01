@@ -2,6 +2,16 @@
 
 @theme inline {
   --font-sans: var(--font-inter);
+  --color-bg: #0f172a;
+  --color-bg-card: #ffffff;
+  --color-text: #e2e8f0;
+  --color-text-on-card: #1e293b;
+  --color-accent: #f59e0b;
+  --color-accent-hover: #d97706;
+  --color-accent-soft: rgba(245, 158, 11, 0.15);
+  --color-surface: #1e293b;
+  --color-border: #334155;
+  --color-muted: #94a3b8;
 }
 
 /* -- Base ----------------------------------------------------------------- */
@@ -14,8 +24,8 @@ html, body {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  background: #0f172a;
-  color: #e2e8f0;
+  background: var(--color-bg);
+  color: var(--color-text);
 }
 
 /* -- Mapbox overrides ----------------------------------------------------- */
