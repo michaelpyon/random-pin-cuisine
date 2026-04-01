@@ -1,0 +1,150 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: var(--font-inter);
+}
+
+/* -- Base ----------------------------------------------------------------- */
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+/* -- Mapbox overrides ----------------------------------------------------- */
+
+.mapboxgl-canvas {
+  outline: none;
+}
+
+.mapboxgl-ctrl-attrib,
+.mapboxgl-ctrl-logo {
+  display: none !important;
+}
+
+/* Pin marker bounce animation */
+.map-pin-marker {
+  animation: pin-bounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+}
+
+@keyframes pin-bounce {
+  0% {
+    transform: translateY(-40px) scale(0.8);
+    opacity: 0;
+  }
+  60% {
+    transform: translateY(4px) scale(1.05);
+    opacity: 1;
+  }
+  80% {
+    transform: translateY(-2px) scale(0.98);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* -- Discovery panel ------------------------------------------------------ */
+
+.discovery-panel {
+  position: relative;
+  height: 100%;
+  background: linear-gradient(to bottom, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.98));
+  backdrop-filter: blur(20px);
+  border-left: 1px solid rgba(51, 65, 85, 0.3);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Mobile: bottom sheet style */
+@media (max-width: 639px) {
+  .discovery-panel {
+    max-height: 75vh;
+    border-left: none;
+    border-top: 1px solid rgba(51, 65, 85, 0.3);
+    border-radius: 24px 24px 0 0;
+  }
+
+  .discovery-panel::before {
+    content: '';
+    display: block;
+    width: 36px;
+    height: 4px;
+    background: rgba(148, 163, 184, 0.3);
+    border-radius: 2px;
+    margin: 12px auto 4px;
+  }
+}
+
+/* -- Animations ----------------------------------------------------------- */
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out both;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.5s ease-out both;
+}
+
+.animate-blink {
+  animation: blink 0.8s infinite;
+}
+
+/* Restaurant card stagger */
+.restaurant-card {
+  animation: slide-up 0.4s ease-out both;
+  opacity: 0;
+}
+
+/* -- Scrollbar styling ---------------------------------------------------- */
+
+.discovery-panel::-webkit-scrollbar {
+  width: 4px;
+}
+
+.discovery-panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.discovery-panel::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 2px;
+}
+
+.discovery-panel::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.4);
+}
+
+/* -- Discover page (scrollable body) -------------------------------------- */
+
+body:has(.discover-page) {
+  overflow: auto;
+}
+
+.discover-page {
+  min-height: 100vh;
+}
