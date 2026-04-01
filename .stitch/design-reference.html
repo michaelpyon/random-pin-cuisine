@@ -1,0 +1,725 @@
+<!-- Design System -->
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,700;1,700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "on-secondary-fixed-variant": "#3a485c",
+            "on-secondary-fixed": "#0d1c2f",
+            "error-container": "#93000a",
+            "surface-container-high": "#222a3d",
+            "surface-tint": "#ffb95f",
+            "on-secondary-container": "#abb9d2",
+            "surface-dim": "#0b1326",
+            "outline-variant": "#534434",
+            "on-tertiary": "#402d00",
+            "inverse-surface": "#dae2fd",
+            "primary-fixed": "#ffddb8",
+            "tertiary-container": "#e0a800",
+            "surface-container-lowest": "#060e20",
+            "surface": "#0b1326",
+            "on-primary": "#472a00",
+            "on-background": "#dae2fd",
+            "surface-container": "#171f33",
+            "inverse-primary": "#855300",
+            "tertiary-fixed": "#ffdf9f",
+            "on-secondary": "#233144",
+            "inverse-on-surface": "#283044",
+            "on-surface-variant": "#d8c3ad",
+            "on-primary-fixed-variant": "#653e00",
+            "tertiary": "#ffc32d",
+            "on-error": "#690005",
+            "on-primary-fixed": "#2a1700",
+            "surface-variant": "#2d3449",
+            "on-error-container": "#ffdad6",
+            "primary-container": "#f59e0b",
+            "outline": "#a08e7a",
+            "tertiary-fixed-dim": "#f9bd22",
+            "surface-container-highest": "#2d3449",
+            "primary-fixed-dim": "#ffb95f",
+            "on-tertiary-fixed-variant": "#5c4300",
+            "surface-container-low": "#131b2e",
+            "primary": "#ffc174",
+            "secondary-fixed": "#d5e3fd",
+            "on-primary-container": "#613b00",
+            "error": "#ffb4ab",
+            "on-tertiary-fixed": "#261a00",
+            "on-surface": "#dae2fd",
+            "background": "#0b1326",
+            "secondary-fixed-dim": "#b9c7e0",
+            "secondary": "#b9c7e0",
+            "on-tertiary-container": "#584000",
+            "secondary-container": "#3c4a5e",
+            "surface-bright": "#31394d"
+          },
+          fontFamily: {
+            "headline": ["Noto Serif"],
+            "body": ["Plus Jakarta Sans"],
+            "label": ["Plus Jakarta Sans"]
+          },
+          borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "1.5rem", "full": "9999px"},
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .glass-panel {
+      background: rgba(11, 19, 38, 0.4);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+    }
+    .amber-glow {
+      box-shadow: 0 0 40px 0 rgba(245, 158, 11, 0.3);
+    }
+    .map-vignette {
+      background: radial-gradient(circle, transparent 20%, #0b1326 100%);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-background font-body overflow-hidden h-screen w-screen">
+<nav class="fixed top-0 w-full z-50 bg-transparent backdrop-blur-xl flex justify-between items-center px-8 py-6 w-full">
+<div class="text-2xl font-bold italic text-[#ffc174] tracking-tighter font-['Noto_Serif']">
+      Voyager
+    </div>
+<div class="hidden md:flex items-center gap-8 font-['Noto_Serif'] font-bold text-2xl tracking-tight">
+<a class="text-[#ffc174] hover:text-[#ffc174] transition-colors duration-300 scale-95 active:scale-90 transition-transform" href="#">World Map</a>
+<a class="text-white/70 hover:text-[#ffc174] transition-colors duration-300 scale-95 active:scale-90 transition-transform" href="#">Journeys</a>
+<a class="text-white/70 hover:text-[#ffc174] transition-colors duration-300 scale-95 active:scale-90 transition-transform" href="#">Guides</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-white/70 hover:text-[#ffc174] transition-colors">explore</button>
+<button class="material-symbols-outlined text-white/70 hover:text-[#ffc174] transition-colors">public</button>
+<div class="w-10 h-10 rounded-full border-2 border-primary/20 overflow-hidden ml-2">
+<img alt="User adventurer profile" class="w-full h-full object-cover" data-alt="close-up portrait of a rugged traveler wearing a linen shirt with a background of soft golden sunbeams" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAxfxHadQJ9O0_-kPU_fhY1Q3oiXB68Ftu6v-7a7tkuiMZUMJNn3UnI6-9U_7PZCyyBh7HfYGkaisYiazRBeRrrCSXdOerlfo6oVjCYGzVp36oSCjYtx7MCAiw4tHA1b8XxP9LxTMu0IgQcRERpuNtVM6b5dEMX6lsuebtkGOh41WFUTSEoYbytQnastefnpAdeLnywFytEmNGuFR5DS0bUcnMQilGWiyhYiQojbAU7vg-4R4BuXQEpp0S6t_hm0Sur1CWKyfhFKQ43"/>
+</div>
+</div>
+</nav>
+<main class="relative h-screen w-screen overflow-hidden">
+<div class="absolute inset-0 z-0">
+<img alt="Night Globe" class="w-full h-full object-cover scale-110" data-alt="dramatic wide shot of Earth at night from space with glowing city lights like gold veins on a deep navy ocean" data-location="Global" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB5tIdPw59Jccle3IWdW6tTYEa8bhL9ObcWloFPPeGK86JTJkvie10geG9h1QSnkh8AYsNBGMnTvtUR4O9N5-qG8eNJ6DQTiepX3IP4NW8g2VWbwpmWw0lRbwpI15DRNkDNiLcy5h4gbzsphUdCThwpWoh1KToxtL-QRr3P-7QeUUMBL4JL5FVKT6pl8n5xXPTpgiOeWGXrllbMkcafuufWuq9TitiavxC_LIL-BPhLVENxsDbbRNiNh2tupeXkCRK40ZAnxaEkclr_"/>
+<div class="absolute inset-0 map-vignette opacity-80"></div>
+</div>
+<div class="relative z-10 h-full w-full flex flex-col items-center justify-center pointer-events-none px-6">
+<div class="pointer-events-auto flex flex-col items-center text-center">
+<div class="mb-8 relative group">
+<div class="absolute -inset-8 bg-primary-container/20 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+<button class="w-24 h-24 bg-primary-container rounded-full flex items-center justify-center amber-glow transform transition-all duration-500 hover:scale-110 active:scale-90">
+<span class="material-symbols-outlined text-on-primary-container !text-5xl" style="font-variation-settings: 'FILL' 1;">location_on</span>
+</button>
+</div>
+<h1 class="font-headline text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight leading-tight">
+          Drop a pin. <br/>
+<span class="italic text-primary">Discover a cuisine.</span>
+</h1>
+<p class="font-label text-xl md:text-2xl text-white/80 max-w-xl font-medium tracking-wide">
+          Eat it tonight.
+        </p>
+</div>
+</div>
+<div class="absolute bottom-12 left-12 z-20 hidden md:block">
+<div class="glass-panel p-6 rounded-xl border border-white/5 shadow-2xl max-w-xs">
+<div class="flex items-center gap-3 mb-4">
+<div class="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+<span class="text-xs font-bold uppercase tracking-widest text-primary">Live Now</span>
+</div>
+<p class="text-on-surface font-headline text-xl mb-2">Street Food in Tokyo</p>
+<p class="text-on-surface-variant text-sm leading-relaxed mb-4">Thousands are currently exploring Tsukiji Market virtually.</p>
+<button class="w-full py-3 bg-surface-container-highest text-primary font-bold rounded-full text-sm hover:bg-primary hover:text-on-primary transition-all">Join Journey</button>
+</div>
+</div>
+<div class="absolute bottom-12 right-12 z-20 flex flex-col gap-4">
+<button class="w-14 h-14 glass-panel rounded-full flex items-center justify-center text-white hover:bg-white/10 transition-colors pointer-events-auto">
+<span class="material-symbols-outlined">add</span>
+</button>
+<button class="w-14 h-14 glass-panel rounded-full flex items-center justify-center text-white hover:bg-white/10 transition-colors pointer-events-auto">
+<span class="material-symbols-outlined">remove</span>
+</button>
+<button class="w-14 h-14 glass-panel rounded-full flex items-center justify-center text-primary hover:bg-primary/20 transition-colors pointer-events-auto">
+<span class="material-symbols-outlined">my_location</span>
+</button>
+</div>
+<div class="absolute bottom-6 left-1/2 -translate-x-1/2 md:hidden z-30">
+<div class="glass-panel px-8 py-4 rounded-full flex items-center gap-12 border border-white/5 shadow-xl">
+<button class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">language</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-white/50">
+<span class="material-symbols-outlined">map</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-white/50">
+<span class="material-symbols-outlined">menu_book</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-white/50">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+</div>
+</main>
+<div class="fixed top-24 left-8 z-40 hidden lg:block">
+<div class="flex flex-col gap-8 items-start">
+<div class="group">
+<div class="text-[0.65rem] uppercase tracking-[0.3em] text-white/40 mb-1 group-hover:text-primary transition-colors">Current Altitude</div>
+<div class="text-3xl font-headline font-bold text-white tabular-nums">42,000<span class="text-sm ml-1 text-white/60">km</span></div>
+</div>
+<div class="group">
+<div class="text-[0.65rem] uppercase tracking-[0.3em] text-white/40 mb-1 group-hover:text-primary transition-colors">Discoveries</div>
+<div class="text-3xl font-headline font-bold text-white tabular-nums">1,204</div>
+</div>
+<div class="group">
+<div class="text-[0.65rem] uppercase tracking-[0.3em] text-white/40 mb-1 group-hover:text-primary transition-colors">Active Voyagers</div>
+<div class="text-3xl font-headline font-bold text-white tabular-nums">892</div>
+</div>
+</div>
+</div>
+<div class="fixed inset-0 pointer-events-none border-[32px] border-surface-dim/20 z-[60]"></div>
+</body></html>
+
+<!-- 1. The Global Pin Drop -->
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@700&amp;family=Plus_Jakarta_Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "on-secondary-fixed-variant": "#3a485c",
+            "on-secondary-fixed": "#0d1c2f",
+            "error-container": "#93000a",
+            "surface-container-high": "#222a3d",
+            "surface-tint": "#ffb95f",
+            "on-secondary-container": "#abb9d2",
+            "surface-dim": "#0b1326",
+            "outline-variant": "#534434",
+            "on-tertiary": "#402d00",
+            "inverse-surface": "#dae2fd",
+            "primary-fixed": "#ffddb8",
+            "tertiary-container": "#e0a800",
+            "surface-container-lowest": "#060e20",
+            "surface": "#0b1326",
+            "on-primary": "#472a00",
+            "on-background": "#dae2fd",
+            "surface-container": "#171f33",
+            "inverse-primary": "#855300",
+            "tertiary-fixed": "#ffdf9f",
+            "on-secondary": "#233144",
+            "inverse-on-surface": "#283044",
+            "on-surface-variant": "#d8c3ad",
+            "on-primary-fixed-variant": "#653e00",
+            "tertiary": "#ffc32d",
+            "on-error": "#690005",
+            "on-primary-fixed": "#2a1700",
+            "surface-variant": "#2d3449",
+            "on-error-container": "#ffdad6",
+            "primary-container": "#f59e0b",
+            "outline": "#a08e7a",
+            "tertiary-fixed-dim": "#f9bd22",
+            "surface-container-highest": "#2d3449",
+            "primary-fixed-dim": "#ffb95f",
+            "on-tertiary-fixed-variant": "#5c4300",
+            "surface-container-low": "#131b2e",
+            "primary": "#ffc174",
+            "secondary-fixed": "#d5e3fd",
+            "on-primary-container": "#613b00",
+            "error": "#ffb4ab",
+            "on-tertiary-fixed": "#261a00",
+            "on-surface": "#dae2fd",
+            "background": "#0b1326",
+            "secondary-fixed-dim": "#b9c7e0",
+            "secondary": "#b9c7e0",
+            "on-tertiary-container": "#584000",
+            "secondary-container": "#3c4a5e",
+            "surface-bright": "#31394d"
+          },
+          fontFamily: {
+            "headline": ["Noto Serif"],
+            "body": ["Plus Jakarta Sans"],
+            "label": ["Plus Jakarta Sans"]
+          },
+          borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "1.5rem", "full": "9999px"},
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #2d3449;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body class="bg-background text-on-background font-body min-h-screen overflow-hidden">
+<nav class="fixed top-0 w-full z-50 bg-transparent backdrop-blur-xl flex justify-between items-center px-8 py-6 w-full">
+<div class="text-2xl font-bold italic text-[#ffc174] tracking-tighter font-headline">
+      Voyager
+    </div>
+<div class="hidden md:flex items-center gap-8">
+<a class="text-[#ffc174] transition-colors duration-300 font-label text-sm uppercase tracking-widest" href="#">World Map</a>
+<a class="text-white/70 hover:text-[#ffc174] transition-colors duration-300 font-label text-sm uppercase tracking-widest" href="#">My Journeys</a>
+<a class="text-white/70 hover:text-[#ffc174] transition-colors duration-300 font-label text-sm uppercase tracking-widest" href="#">Cuisine Guide</a>
+</div>
+<div class="flex items-center gap-6">
+<button class="text-white/70 hover:text-[#ffc174] transition-transform scale-95 active:scale-90 duration-300">
+<span class="material-symbols-outlined">explore</span>
+</button>
+<button class="text-white/70 hover:text-[#ffc174] transition-transform scale-95 active:scale-90 duration-300">
+<span class="material-symbols-outlined">public</span>
+</button>
+<div class="w-10 h-10 rounded-full overflow-hidden border border-white/10">
+<img alt="User adventurer profile" class="w-full h-full object-cover" data-alt="Close-up portrait of a weathered traveler with kind eyes and a salt-and-pepper beard in warm cinematic lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBa_ca8bmXm08AWiK2hYxsl5WJvU9NCQQBR1an5rRSbAZlCUnc7pahixT2lXTJp48uqq8KaR29mh_WxLyeuDKpFYDtcKNBGE7toBWUXctMz2aTlCFRHpn_iBk8HLHfu20yU9hLugxeRqZiVPfArTL5LJEL3rWOQ1mOK0cO6AbUxGDOq6ywvqlP7fKhRvGL5YLue0hLX-qbZuc9grIn0BnSPfwX0otqB461PjMMsIeVOcanAvH4FNOPqBot_1n5Z9POvqiT9BDLTebRm"/>
+</div>
+</div>
+</nav>
+<main class="relative h-screen w-full flex items-center justify-center overflow-hidden">
+<div class="absolute inset-0 z-0">
+<div class="w-full h-full bg-surface-dim relative overflow-hidden" data-location="Thailand" style="">
+<div class="absolute inset-0 bg-[#0b1326] opacity-40"></div>
+<img class="w-full h-full object-cover" data-alt="Atmospheric dark blue toned map of Southeast Asia with glowing amber points of interest and soft digital textures" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCI_9lzjB-md9YVtgh5D223Bo92fDrMVE8F1w0DmlemeU0Exo56W171H7DNt-slX3rYEjN2j4gE52if4VcQSUw1yHwy_j_-c_ZA9PKlzIzKNY0qolqpcE5V2Y_J6LkIgj8BhG7KiPkQ78BV7qJjtiy6mn3eVQRLwwbgcEKo0luxOzvyGO5YMSLEzh5tsIwm44pIFLLUP62MIcenjT2vEoylf04GEcCtumgKNZw9VggjXCkNDZfZS6u0gmGjTzrAJftqwfL_mp03f_D0"/>
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+<div class="relative flex items-center justify-center">
+<div class="absolute w-24 h-24 bg-primary/20 rounded-full animate-ping"></div>
+<div class="absolute w-12 h-12 bg-primary/40 rounded-full"></div>
+<div class="relative z-10 text-primary drop-shadow-[0_0_15px_rgba(255,193,116,0.8)]">
+<span class="material-symbols-outlined text-5xl" style="font-variation-settings: 'FILL' 1;">location_on</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="absolute bottom-0 left-0 right-0 z-40 px-4 pb-4 md:px-8 md:pb-8 flex justify-center">
+<div class="w-full max-w-5xl bg-surface-container rounded-xl shadow-[0_-32px_64px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col md:flex-row">
+<div class="w-full md:w-2/5 relative h-64 md:h-auto">
+<img class="w-full h-full object-cover" data-alt="Vibrant close-up of Pad Thai in a ceramic bowl with crushed peanuts, lime wedges, and aromatic herbs in warm golden hour lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBMLvsNpMQkTaTXkkQDq9inqFkusdwIzu3xCZLL14kXN3KpVo4tco64bSH7ukqdxFGdQhNWEJ-aHw4In_69ODbaqPZsLUN9kuMItz5Jd1tjiQL8CZrckR3jlciJcJgNlnLeoJUB99KweLmcmnObG8p-YIS_geOcMz6S_7CQPCPCiB_e2NlIi89gdMGmXHXwSvj1ppscI3amvOg4SeqTq7QSD4ZLQ99WM3RkNlxFoivCoaGfs2Bvv_3bVL3L98K76e97yPyvvlQd1A0w"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container via-transparent to-transparent"></div>
+<div class="absolute bottom-6 left-8">
+<span class="inline-block px-3 py-1 bg-primary/20 backdrop-blur-md text-primary text-xs font-bold tracking-widest uppercase rounded-full mb-2">Heritage Discovery</span>
+</div>
+</div>
+<div class="w-full md:w-3/5 p-8 md:p-12 flex flex-col justify-between">
+<div>
+<h1 class="font-headline text-5xl md:text-6xl text-primary leading-tight mb-6 uppercase tracking-tight">
+              Thai Cuisine
+            </h1>
+<p class="text-on-surface-variant text-lg md:text-xl leading-relaxed font-body max-w-xl">
+              A symphony of sweet, sour, salty, and spicy, Thai cuisine is the heart of Southeast Asian street food culture.
+            </p>
+<div class="mt-10 flex items-center gap-4">
+<div class="h-px w-12 bg-primary/30"></div>
+<span class="font-headline italic text-primary/80 text-xl">Now, in New York City...</span>
+</div>
+</div>
+<div class="mt-12 grid grid-cols-1 sm:grid-cols-2 gap-4">
+<div class="group p-4 bg-surface-container-high hover:bg-surface-container-highest rounded-xl transition-all duration-300 cursor-pointer">
+<div class="flex justify-between items-start mb-3">
+<span class="text-xs font-bold text-primary tracking-widest uppercase">Michelin Choice</span>
+<span class="material-symbols-outlined text-primary text-sm">star</span>
+</div>
+<h3 class="font-headline text-lg text-on-surface mb-1">Uncle Boons</h3>
+<p class="text-on-surface-variant text-xs font-body">Lower East Side • Elevated Classic</p>
+</div>
+<div class="group p-4 bg-surface-container-high hover:bg-surface-container-highest rounded-xl transition-all duration-300 cursor-pointer">
+<div class="flex justify-between items-start mb-3">
+<span class="text-xs font-bold text-primary tracking-widest uppercase">Secret Spot</span>
+<span class="material-symbols-outlined text-primary text-sm">visibility_off</span>
+</div>
+<h3 class="font-headline text-lg text-on-surface mb-1">Fish Cheeks</h3>
+<p class="text-on-surface-variant text-xs font-body">NoHo • Coastal Seafood Focus</p>
+</div>
+</div>
+<div class="mt-8 flex justify-end">
+<button class="bg-primary-container text-on-primary-container px-8 py-4 rounded-full font-bold flex items-center gap-3 hover:scale-105 transition-transform">
+              Explore All Venues
+              <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<aside class="hidden lg:flex fixed left-0 top-0 h-screen w-20 flex-col items-center py-12 z-50 bg-[#0b1326]/40 backdrop-blur-2xl">
+<div class="mb-12">
+<span class="material-symbols-outlined text-primary text-3xl">restaurant_menu</span>
+</div>
+<div class="flex flex-col gap-10">
+<button class="text-primary bg-[#f59e0b]/20 p-3 rounded-xl transition-all">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">language</span>
+</button>
+<button class="text-slate-400 hover:text-primary p-3 rounded-xl transition-all">
+<span class="material-symbols-outlined">map</span>
+</button>
+<button class="text-slate-400 hover:text-primary p-3 rounded-xl transition-all">
+<span class="material-symbols-outlined">menu_book</span>
+</button>
+<button class="text-slate-400 hover:text-primary p-3 rounded-xl transition-all">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+<div class="mt-auto">
+<button class="w-12 h-12 bg-primary-container rounded-full flex items-center justify-center text-on-primary-container shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined">add</span>
+</button>
+</div>
+</aside>
+<nav class="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-surface-container/90 backdrop-blur-xl px-6 py-4 flex justify-between items-center">
+<button class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">language</span>
+<span class="text-[10px] font-bold uppercase tracking-tighter">World</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined">map</span>
+<span class="text-[10px] font-bold uppercase tracking-tighter">Journeys</span>
+</button>
+<div class="-mt-12 bg-primary-container p-4 rounded-full shadow-xl">
+<span class="material-symbols-outlined text-on-primary-container">explore</span>
+</div>
+<button class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined">menu_book</span>
+<span class="text-[10px] font-bold uppercase tracking-tighter">Guide</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px] font-bold uppercase tracking-tighter">Settings</span>
+</button>
+</nav>
+</body></html>
+
+<!-- 2. The Reveal -->
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&amp;family=Plus_Jakarta_Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-secondary-fixed-variant": "#3a485c",
+              "on-secondary-fixed": "#0d1c2f",
+              "error-container": "#93000a",
+              "surface-container-high": "#222a3d",
+              "surface-tint": "#ffb95f",
+              "on-secondary-container": "#abb9d2",
+              "surface-dim": "#0b1326",
+              "outline-variant": "#534434",
+              "on-tertiary": "#402d00",
+              "inverse-surface": "#dae2fd",
+              "primary-fixed": "#ffddb8",
+              "tertiary-container": "#e0a800",
+              "surface-container-lowest": "#060e20",
+              "surface": "#0b1326",
+              "on-primary": "#472a00",
+              "on-background": "#dae2fd",
+              "surface-container": "#171f33",
+              "inverse-primary": "#855300",
+              "tertiary-fixed": "#ffdf9f",
+              "on-secondary": "#233144",
+              "inverse-on-surface": "#283044",
+              "on-surface-variant": "#d8c3ad",
+              "on-primary-fixed-variant": "#653e00",
+              "tertiary": "#ffc32d",
+              "on-error": "#690005",
+              "on-primary-fixed": "#2a1700",
+              "surface-variant": "#2d3449",
+              "on-error-container": "#ffdad6",
+              "primary-container": "#f59e0b",
+              "outline": "#a08e7a",
+              "tertiary-fixed-dim": "#f9bd22",
+              "surface-container-highest": "#2d3449",
+              "primary-fixed-dim": "#ffb95f",
+              "on-tertiary-fixed-variant": "#5c4300",
+              "surface-container-low": "#131b2e",
+              "primary": "#ffc174",
+              "secondary-fixed": "#d5e3fd",
+              "on-primary-container": "#613b00",
+              "error": "#ffb4ab",
+              "on-tertiary-fixed": "#261a00",
+              "on-surface": "#dae2fd",
+              "background": "#0b1326",
+              "secondary-fixed-dim": "#b9c7e0",
+              "secondary": "#b9c7e0",
+              "on-tertiary-container": "#584000",
+              "secondary-container": "#3c4a5e",
+              "surface-bright": "#31394d"
+            },
+            fontFamily: {
+              "headline": ["Noto Serif"],
+              "body": ["Plus Jakarta Sans"],
+              "label": ["Plus Jakarta Sans"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "1.5rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(11, 19, 38, 0.7);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+        }
+        .tonal-stacking-surface-container {
+            background: linear-gradient(to bottom, #171f33, #0b1326);
+        }
+    </style>
+</head>
+<body class="bg-surface-dim font-body text-on-surface overflow-hidden">
+<!-- Background Map Layer -->
+<div class="fixed inset-0 z-0 bg-surface-dim">
+<img class="w-full h-full object-cover opacity-40 brightness-50" data-alt="stylized night map of Manhattan with glowing amber street lights and deep navy blocks" data-location="New York City" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBC3ZRjRRtddp02-ajY3CnYaqhctcJrH95Neu688goUAktWqxdYfTDJoAdEZFKYnk-yIT8qnZwAvvPvS0ELPZ1ObRFwMGFMHd_fEdAx_aLruhA1LbVhSzlAFRfU5sisRMgN4llABWsBhGi4JisactkaGyq8Zb8wsUYHkOnXUJq0AuRLPeoTkTioDocY-n1bV6BUcGxr3SrUF9dj9kB1JDQcY83ZJFmgjIGAL8OaoLuJ7KMB2EJjy43sbPYKkr6lNRt7-iqsVX0VScvc"/>
+</div>
+<!-- Top Navigation Bar (Shared Component) -->
+<nav class="fixed top-0 w-full z-50 bg-transparent backdrop-blur-xl flex justify-between items-center px-8 py-6 w-full">
+<div class="flex items-center gap-8">
+<span class="font-['Noto_Serif'] font-bold text-2xl tracking-tight text-[#ffc174] italic tracking-tighter">Voyager</span>
+<div class="hidden md:flex items-center gap-6">
+<a class="text-[#ffc174] transition-colors duration-300 font-medium scale-95 active:scale-90 transition-transform" href="#">World Map</a>
+<a class="text-white/70 hover:text-[#ffc174] transition-colors duration-300 font-medium scale-95 active:scale-90 transition-transform" href="#">My Journeys</a>
+<a class="text-white/70 hover:text-[#ffc174] transition-colors duration-300 font-medium scale-95 active:scale-90 transition-transform" href="#">Cuisine Guide</a>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-4 text-white/70">
+<span class="material-symbols-outlined hover:text-[#ffc174] transition-colors duration-300 cursor-pointer">explore</span>
+<span class="material-symbols-outlined hover:text-[#ffc174] transition-colors duration-300 cursor-pointer">public</span>
+</div>
+<img class="w-10 h-10 rounded-full object-cover border-2 border-[#ffc174]/20" data-alt="User adventurer profile portrait with warm natural lighting and travel gear" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCx5Mo41p_PzdxNREVFtq2Aof5S3Pbywlz8ZczCsy0nox7FBW_tilmTTwsi9ETBoFRaDugXW_Ibk1nCnkh8BGg4miMFqzYkqCtSYfTgmDbKqa7jslPPRi3Gaw9xUTQxx3OKLxxsKx_mZz4oUD1cphYp1c1G--AX6WTrfZ52CrwioHerwOuNbsS-o5lxon8Sz2s_YL2AD9Wcpc9gvBIGzCQcieH4JhFclMjMD87WGeO43dJnGjEMHJtlIoDeaIn5k0YsaleKlsxf73s9"/>
+</div>
+</nav>
+<!-- Sidebar Navigation (Hidden on Mobile) -->
+<aside class="hidden lg:flex fixed left-0 top-0 h-screen w-72 bg-[#0b1326]/90 backdrop-blur-2xl flex flex-col h-screen p-6 z-40 rounded-r-[1.5rem] shadow-[32px_0_64px_rgba(11,19,38,0.06)]">
+<div class="mb-12 pt-20 px-2">
+<h2 class="text-[#ffc174] font-serif text-xl mb-1">The Voyager</h2>
+<p class="text-slate-400 text-sm font-medium">Level 12 Gastronome</p>
+</div>
+<div class="flex-1 space-y-2">
+<div class="flex items-center gap-4 px-4 py-3 bg-[#f59e0b]/20 text-[#ffc174] rounded-xl font-medium ease-in-out duration-200 cursor-pointer">
+<span class="material-symbols-outlined">language</span>
+<span>World Map</span>
+</div>
+<div class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:bg-white/5 rounded-xl font-medium ease-in-out duration-200 cursor-pointer">
+<span class="material-symbols-outlined">map</span>
+<span>My Journeys</span>
+</div>
+<div class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:bg-white/5 rounded-xl font-medium ease-in-out duration-200 cursor-pointer">
+<span class="material-symbols-outlined">menu_book</span>
+<span>Cuisine Guide</span>
+</div>
+<div class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:bg-white/5 rounded-xl font-medium ease-in-out duration-200 cursor-pointer">
+<span class="material-symbols-outlined">settings</span>
+<span>Settings</span>
+</div>
+</div>
+<button class="mt-auto mb-6 bg-primary-container text-on-primary-container py-4 rounded-full font-bold flex items-center justify-center gap-2 shadow-lg shadow-primary-container/20">
+<span class="material-symbols-outlined">add</span>
+            New Discovery
+        </button>
+</aside>
+<!-- Main Discovery Canvas (Fully Expanded Bottom Sheet) -->
+<main class="fixed inset-0 top-16 md:left-72 z-30 flex flex-col items-center">
+<div class="w-full max-w-7xl h-full bg-surface-container/60 backdrop-blur-3xl rounded-t-xl md:rounded-tl-xl md:rounded-tr-none shadow-2xl overflow-y-auto pt-12 pb-32 px-6 md:px-12">
+<!-- Sheet Header / Drag Indicator -->
+<div class="flex justify-center mb-10">
+<div class="w-12 h-1.5 bg-on-surface-variant/30 rounded-full"></div>
+</div>
+<!-- Editorial Header -->
+<header class="max-w-4xl mb-12">
+<p class="font-label text-primary font-bold tracking-widest uppercase text-xs mb-3">Curated Experience</p>
+<h1 class="font-headline text-5xl md:text-7xl text-on-surface font-bold leading-tight mb-4">New York City’s <span class="italic text-primary-fixed-dim">Gilded Palates.</span></h1>
+<p class="font-body text-xl text-on-surface-variant max-w-2xl leading-relaxed">
+                    A collection of cinematic dining rooms where the legacy of Gotham meets the innovation of the modern chef.
+                </p>
+</header>
+<!-- Bento Grid of Discovery Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+<!-- Restaurant Card 1 -->
+<div class="group relative bg-surface-container-low rounded-xl overflow-hidden shadow-2xl transition-all duration-300 hover:-translate-y-2">
+<div class="aspect-[4/5] relative overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="vibrant Thai cuisine on artisanal ceramic plate with aromatic herbs and warm mood lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBvun1lu9j-9HLcAM4aQggnuE5mcJTUuMH9_9MU0nJMPOoMIKZFGHFIepJn3xJ5M1babI5jEVl2bj3VCm52tosGRSBqkW0bntqQ0KHKG2Cp47PAJXIggUfJIyjVD5DIL6oxMB_FC59QWUARrQ2Q2p-jqsWCpGy4nGAZPRjHnXtU0mVr7AyThNPjvYb6W1Z_L1mgPk1EJGs85aAO_f25pRxaIFQX_NobbJVQit05QbLkooF5gXmBWJm0tvVaVkGc59Hoe2snlM1oBnYv"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-dim via-transparent to-transparent"></div>
+<div class="absolute top-4 right-4 bg-primary-container text-on-primary-container px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+                            4.8
+                        </div>
+</div>
+<div class="p-6 relative -mt-20">
+<div class="bg-surface-container-highest/95 backdrop-blur-md p-6 rounded-xl shadow-xl">
+<h3 class="font-headline text-2xl text-on-surface font-bold mb-1">Sway Thai</h3>
+<p class="text-on-surface-variant text-sm mb-6 flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">location_on</span>
+                                West Village, Manhattan
+                            </p>
+<div class="flex gap-3">
+<button class="flex-1 bg-primary text-on-primary font-bold py-3 rounded-full text-sm flex items-center justify-center gap-2 hover:bg-primary-fixed transition-colors">
+                                    Reserve
+                                </button>
+<button class="w-12 h-12 rounded-full border border-outline-variant flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined">near_me</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Restaurant Card 2 -->
+<div class="group relative bg-surface-container-low rounded-xl overflow-hidden shadow-2xl transition-all duration-300 hover:-translate-y-2 lg:mt-12">
+<div class="aspect-[4/5] relative overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="classic New York steakhouse interior with dark wood and amber candle light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA0udi5W2uVJYOYMPIhg_xDlCIZOtKhHYyuYci0--XY-Tlu72XmDgOnhFTyDnwZ1Y4X32zci6MvmdUYEmVFqzUQGV8YOEPLguatdLa8kp1rUE48beqSsFbkQoXxfy12xKW2DIEc2NrxfBDP6I3EaE7SN8W3PWPrH6cREyCI_SC4qZgPcSckTxaXZr15Uc4rBVJ2whIXrsQztsIdgoYaLDYX1icRf_zO80F6nFa9XPzf4NEWm53qtbv0JNfCe9q50n2G7PogbvhWtdJR"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-dim via-transparent to-transparent"></div>
+<div class="absolute top-4 right-4 bg-primary-container text-on-primary-container px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+                            4.9
+                        </div>
+</div>
+<div class="p-6 relative -mt-20">
+<div class="bg-surface-container-highest/95 backdrop-blur-md p-6 rounded-xl shadow-xl">
+<h3 class="font-headline text-2xl text-on-surface font-bold mb-1">Uncle Boons</h3>
+<p class="text-on-surface-variant text-sm mb-6 flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">location_on</span>
+                                Nolita, Manhattan
+                            </p>
+<div class="flex gap-3">
+<button class="flex-1 bg-primary text-on-primary font-bold py-3 rounded-full text-sm flex items-center justify-center gap-2 hover:bg-primary-fixed transition-colors">
+                                    Reserve
+                                </button>
+<button class="w-12 h-12 rounded-full border border-outline-variant flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined">near_me</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Restaurant Card 3 -->
+<div class="group relative bg-surface-container-low rounded-xl overflow-hidden shadow-2xl transition-all duration-300 hover:-translate-y-2">
+<div class="aspect-[4/5] relative overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="exquisite plate of hand-made pasta with fresh ingredients in a sunlit loft restaurant" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCQYeEM2dZySnPVOfO7TS9nsIw81UhHpbwUv1ajSQSt5SyBpcFefFuzRVXSiJPqrOwM574MDFwE2K3bqPoc13YCk2pxoAMCKxhZ3y0F0ynsL5vUpqwf3jaFXzwchCl1RhDZGoFLqI321q6d7z6qO36ugLIyTrTZ_rXQxNduwuikQnsYkVuqgLV45doLhuocpSiKqm25_ryinCc9XN8q0ODMnVpRf_Q74brj0rW-pAdr4FAaG7pNKKyp79a5-u5e2a-SxLaQlUEPSOMZ"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-dim via-transparent to-transparent"></div>
+<div class="absolute top-4 right-4 bg-primary-container text-on-primary-container px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+                            4.7
+                        </div>
+</div>
+<div class="p-6 relative -mt-20">
+<div class="bg-surface-container-highest/95 backdrop-blur-md p-6 rounded-xl shadow-xl">
+<h3 class="font-headline text-2xl text-on-surface font-bold mb-1">L'Artusi</h3>
+<p class="text-on-surface-variant text-sm mb-6 flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">location_on</span>
+                                Greenwich Village
+                            </p>
+<div class="flex gap-3">
+<button class="flex-1 bg-primary text-on-primary font-bold py-3 rounded-full text-sm flex items-center justify-center gap-2 hover:bg-primary-fixed transition-colors">
+                                    Reserve
+                                </button>
+<button class="w-12 h-12 rounded-full border border-outline-variant flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined">near_me</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Restaurant Card 4 -->
+<div class="group relative bg-surface-container-low rounded-xl overflow-hidden shadow-2xl transition-all duration-300 hover:-translate-y-2">
+<div class="aspect-[4/5] relative overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="intimate dark moody sushi bar with warm wooden textures and focus on fresh sashimi" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBr_bRlW25LA__B3Pe3pT8BdCoT0-7P1IESDcO-Zx-sA4OwUna91wGtYCTYehcyxNeh7eApdk4oUx1Plb6gLAjA5jH1oAmd_9TVCZHpz2wUgC_xOOKJSRjyrrbfpuJEIeG13sv_zrntRoum6M5wWUrh07lHIVZ_E3WO24EsqjvxSC0BVNnWF-5P2s4wX6NpwsMomPpuUaodXGl4tF4f22uFBbpKHWV3PknabaQEAoE1ZYuxJKPEp5nzlTiJmhaPBq15GXUTSDym-XsE"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-dim via-transparent to-transparent"></div>
+<div class="absolute top-4 right-4 bg-primary-container text-on-primary-container px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+                            5.0
+                        </div>
+</div>
+<div class="p-6 relative -mt-20">
+<div class="bg-surface-container-highest/95 backdrop-blur-md p-6 rounded-xl shadow-xl">
+<h3 class="font-headline text-2xl text-on-surface font-bold mb-1">Masa</h3>
+<p class="text-on-surface-variant text-sm mb-6 flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">location_on</span>
+                                Upper West Side
+                            </p>
+<div class="flex gap-3">
+<button class="flex-1 bg-primary text-on-primary font-bold py-3 rounded-full text-sm flex items-center justify-center gap-2 hover:bg-primary-fixed transition-colors">
+                                    Reserve
+                                </button>
+<button class="w-12 h-12 rounded-full border border-outline-variant flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined">near_me</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- CTA Discovery Footer -->
+<div class="md:col-span-2 lg:col-span-2 flex items-center justify-center p-12 bg-primary/10 rounded-xl border border-primary/20 border-dashed">
+<div class="text-center">
+<h4 class="font-headline text-3xl text-primary font-bold mb-4">Hungry for more?</h4>
+<p class="text-on-surface-variant mb-8 max-w-sm mx-auto">Explore another 24 hidden gems curated just for your palate in Lower Manhattan.</p>
+<button class="bg-primary-container text-on-primary-container px-12 py-4 rounded-full font-bold shadow-xl flex items-center gap-2 mx-auto">
+<span class="material-symbols-outlined">restaurant_menu</span>
+                            Explore All NYC
+                        </button>
+</div>
+</div>
+</div>
+<!-- Global Action Bar -->
+<footer class="mt-24 border-t border-outline-variant/15 pt-12 text-center">
+<button class="inline-flex items-center gap-3 bg-surface-container-highest px-10 py-5 rounded-full font-bold text-lg hover:bg-surface-bright transition-all shadow-xl group">
+<span class="material-symbols-outlined text-primary group-hover:scale-125 transition-transform">share</span>
+                    Share this Discovery
+                </button>
+<p class="mt-8 text-on-surface-variant/50 text-sm italic">The Voyager • Edition 12 • Manhattan North East Selection</p>
+</footer>
+</div>
+</main>
+<!-- Mobile Bottom Navigation (Hidden on Desktop) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full glass-panel z-50 flex justify-around items-center px-4 py-4 rounded-t-xl">
+<div class="flex flex-col items-center gap-1 text-[#ffc174]">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">language</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Map</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined">map</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Journeys</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined">menu_book</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Guide</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Profile</span>
+</div>
+</nav>
+</body></html>
