@@ -1,17 +1,23 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter } from 'next/font/google';
+import { Plus_Jakarta_Sans, Noto_Serif } from 'next/font/google';
 import './globals.css';
 
-const inter = Inter({
+const jakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
-  variable: '--font-inter',
+  variable: '--font-jakarta',
+});
+
+const notoSerif = Noto_Serif({
+  subsets: ['latin'],
+  weight: ['700'],
+  variable: '--font-noto-serif',
 });
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
-  themeColor: '#0f172a',
+  themeColor: '#0b1326',
 };
 
 export const metadata: Metadata = {
@@ -42,8 +48,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} h-full antialiased dark`}>
-      <body className="min-h-full bg-slate-900 text-white font-sans">
+    <html lang="en" className={`${jakarta.variable} ${notoSerif.variable} h-full antialiased dark`}>
+      <body className="min-h-full bg-bg text-text font-sans">
         {children}
       </body>
     </html>

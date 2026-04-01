@@ -1,17 +1,23 @@
 @import "tailwindcss";
 
 @theme inline {
-  --font-sans: var(--font-inter);
-  --color-bg: #0f172a;
+  --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-headline: "Noto Serif", Georgia, serif;
+  --color-bg: #0b1326;
   --color-bg-card: #ffffff;
-  --color-text: #e2e8f0;
+  --color-text: #dae2fd;
   --color-text-on-card: #1e293b;
   --color-accent: #f59e0b;
+  --color-accent-warm: #ffc174;
   --color-accent-hover: #d97706;
   --color-accent-soft: rgba(245, 158, 11, 0.15);
-  --color-surface: #1e293b;
-  --color-border: #334155;
-  --color-muted: #94a3b8;
+  --color-surface: #131b2e;
+  --color-surface-high: #222a3d;
+  --color-surface-bright: #31394d;
+  --color-border: rgba(255, 255, 255, 0.05);
+  --color-border-hover: rgba(255, 255, 255, 0.1);
+  --color-muted: #b9c7e0;
+  --color-subtle: #94a3b8;
 }
 
 /* -- Base ----------------------------------------------------------------- */
@@ -26,6 +32,27 @@ html, body {
   overflow: hidden;
   background: var(--color-bg);
   color: var(--color-text);
+}
+
+/* -- Glass panel ---------------------------------------------------------- */
+
+.glass-panel {
+  background: rgba(11, 19, 38, 0.4);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* -- Amber glow ----------------------------------------------------------- */
+
+.amber-glow {
+  box-shadow: 0 0 40px 0 rgba(245, 158, 11, 0.3);
+}
+
+/* -- Map vignette --------------------------------------------------------- */
+
+.map-vignette {
+  background: radial-gradient(circle, transparent 20%, #0b1326 100%);
 }
 
 /* -- Mapbox overrides ----------------------------------------------------- */
@@ -67,9 +94,9 @@ html, body {
 .discovery-panel {
   position: relative;
   height: 100%;
-  background: linear-gradient(to bottom, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.98));
+  background: linear-gradient(to bottom, rgba(11, 19, 38, 0.95), rgba(11, 19, 38, 0.98));
   backdrop-filter: blur(20px);
-  border-left: 1px solid rgba(51, 65, 85, 0.3);
+  border-left: 1px solid rgba(255, 255, 255, 0.05);
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
@@ -80,7 +107,7 @@ html, body {
   .discovery-panel {
     max-height: 75vh;
     border-left: none;
-    border-top: 1px solid rgba(51, 65, 85, 0.3);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: 24px 24px 0 0;
   }
 
