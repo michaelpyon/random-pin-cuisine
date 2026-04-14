@@ -454,7 +454,7 @@ function ResultContent({ result, onSharePin, searchCenter, searchRadius, onSearc
             <p className="no-match-emoji">🍁</p>
             <p className="no-match">No {cuisine.cuisineType} restaurants found nearby.</p>
             <p className="no-match-hint">
-              Try expanding the search radius above, then click Search This Area — or search for any restaurant nearby.
+              Try expanding the search radius above, then click Search This Area, or search for any restaurant nearby.
             </p>
             {onSearchAnyway && (
               <button className="search-anyway-btn" onClick={onSearchAnyway}>
