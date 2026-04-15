@@ -854,7 +854,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
 }
 
 .preset-btn:hover {
@@ -1127,7 +1127,7 @@
   border: 1px solid rgba(249, 115, 22, 0.25);
   border-radius: 6px;
   text-decoration: none;
-  transition: all 0.15s ease;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
 }
 
 .restaurant-link-btn:hover {

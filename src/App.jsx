@@ -393,7 +393,7 @@ export default function App() {
         {!pin && !loading && !repositioning && (
           <div className="map-hint map-hint--desktop">
             <span className="map-hint-pulse" />
-            <span className="map-hint-text">Pan map &amp; tap Drop Pin — or click anywhere</span>
+            <span className="map-hint-text">Pan map &amp; tap Drop Pin, or click anywhere</span>
           </div>
         )}
 

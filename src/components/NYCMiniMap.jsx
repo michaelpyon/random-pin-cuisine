@@ -33,7 +33,7 @@ function createNumberedIcon(num, highlighted = false) {
       font-size:11px;font-weight:700;font-family:'Inter',system-ui,sans-serif;
       box-shadow:${shadow};
       cursor:pointer;
-      transition:all 0.15s ease;
+      transition:opacity 0.15s ease, transform 0.15s ease;
     ">${num}</div>`,
     iconSize: [28, 28],
     iconAnchor: [14, 14],
