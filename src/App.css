@@ -1207,6 +1207,20 @@
   border-color: var(--text-muted);
 }
 
+/* Directions: the "go tonight" action. Green so it reads as a primary verb,
+   distinct from the orange brand links. */
+.restaurant-link-btn--directions {
+  color: #16a34a;
+  background: rgba(22, 163, 74, 0.1);
+  border-color: rgba(22, 163, 74, 0.28);
+}
+
+.restaurant-link-btn--directions:hover {
+  color: #fff;
+  background: #16a34a;
+  border-color: #16a34a;
+}
+
 /* Empty state for no matches */
 .no-match-box {
   text-align: center;

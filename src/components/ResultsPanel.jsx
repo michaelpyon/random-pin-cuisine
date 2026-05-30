@@ -204,6 +204,24 @@ function ErrorState({ message, isEdgeCase, onRetry }) {
   )
 }
 
+/**
+ * Build a Google Maps directions deep link for a restaurant.
+ * Prefers the exact OSM lat/lon (so it routes to the real building, not a
+ * fuzzy name match), and falls back to a name + NYC text query when
+ * coordinates are missing. Returns null if there is nothing to route to.
+ * Uses the official Maps URLs API so it opens turn by turn on web and mobile.
+ */
+function directionsLink(restaurant) {
+  if (restaurant.lat != null && restaurant.lon != null) {
+    return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${restaurant.lat},${restaurant.lon}`)}`
+  }
+  if (restaurant.name) {
+    const query = `${restaurant.name}${restaurant.address ? `, ${restaurant.address}` : ''}, New York, NY`
+    return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(query)}`
+  }
+  return null
+}
+
 /** Haversine distance in km between two lat/lng points */
 function haversineKm(lat1, lon1, lat2, lon2) {
   const R = 6371
@@ -595,6 +613,17 @@ function RestaurantCard({ restaurant, index, searchCenter, isFavorited, onToggle
         </div>
 
         <div className="restaurant-links">
+          {directionsLink(restaurant) && (
+            <a
+              href={directionsLink(restaurant)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="restaurant-link-btn restaurant-link-btn--directions"
+              title="Open turn by turn directions in Google Maps"
+            >
+              🧭 Directions
+            </a>
+          )}
           {restaurant.googleMapsLink && (
             <a
               href={restaurant.googleMapsLink}
@@ -668,16 +697,29 @@ function SavedCard({ restaurant, index, onUnsave }) {
           )}
         </div>
 
-        {restaurant.url && (
+        {(directionsLink(restaurant) || restaurant.url) && (
           <div className="restaurant-links">
-            <a
-              href={restaurant.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="restaurant-link-btn"
-            >
-              Maps
-            </a>
+            {directionsLink(restaurant) && (
+              <a
+                href={directionsLink(restaurant)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="restaurant-link-btn restaurant-link-btn--directions"
+                title="Open turn by turn directions in Google Maps"
+              >
+                🧭 Directions
+              </a>
+            )}
+            {restaurant.url && (
+              <a
+                href={restaurant.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="restaurant-link-btn"
+              >
+                Maps
+              </a>
+            )}
           </div>
         )}
       </div>

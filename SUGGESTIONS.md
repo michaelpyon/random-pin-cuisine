@@ -47,6 +47,15 @@ Verified against HEAD source, not assumptions.
   product) while the repo is healthy. This is the single biggest gap and it is a deploy,
   not a code change.
 
+## Shipped wave 2
+
+- Per restaurant Directions deep link (plan item 7). Each result card and saved card now
+  has a green "Directions" button next to "Maps". It uses the official Google Maps URLs
+  API directions endpoint, routing to the restaurant's exact OSM lat/lon when available and
+  falling back to a name plus NYC query otherwise. This converts the reveal from "here is a
+  spot" into "go there tonight", which is the evangelist's actual job. Additive only, no
+  data fabricated (coordinates are real OSM data), build verified with vite, no deploy.
+
 ## Prioritized plan
 
 ### Quick wins
@@ -77,6 +86,7 @@ Verified against HEAD source, not assumptions.
 7. Add a lightweight "open in Google Maps / directions" link per restaurant. Effort S.
    Deploy needed: no for code. Maya wants to actually go tonight; OSM gives lat/lng, so a
    directions deep link converts curiosity into a visit and a reason to return.
+   DONE wave 2. See "Shipped wave 2" above.
 8. Tighten coastal geocoding. Effort M. Deploy needed: yes. Coastal clicks can resolve to
    "ocean"; bias reverse-geocode to the nearest land feature so a click on a coastal city
    does not get the fish joke.
