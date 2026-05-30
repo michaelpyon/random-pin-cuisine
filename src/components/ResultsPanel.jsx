@@ -88,10 +88,14 @@ export default function ResultsPanel({ result, loading, error, onClose, onShareP
         <span className="close-kbd-hint">Esc</span>
       </button>
 
-      {/* Share toast */}
+      {/* Share toast. The message reflects what actually happened: a real Web
+          Share, a clipboard copy, or opening a Twitter compose tab. We never
+          claim "copied" unless the clipboard write succeeded. */}
       {shareToast && (
         <div className="share-toast" role="status">
-          ✅ Shared! Link copied to clipboard.
+          {shareToast === 'shared' && '✅ Shared!'}
+          {shareToast === 'copied' && '🔗 Link copied to clipboard'}
+          {shareToast === 'tweet' && '🐦 Opened a post for you'}
         </div>
       )}
 

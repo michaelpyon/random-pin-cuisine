@@ -6,6 +6,14 @@ import { reverseGeocode, isOcean, isAntarctica, getRandomLandCoords } from './ut
 import { classifyCuisine } from './utils/claude'
 import { findNYCRestaurants, findNYCRestaurantsUnfiltered, enrichRestaurants } from './utils/yelp'
 import { getPinHistory, addPinToHistory, clearPinHistory } from './utils/pinHistory'
+import {
+  buildShareSnapshot,
+  encodeShareSnapshot,
+  decodeShareSnapshot,
+  snapshotToResult,
+  placeLabel,
+  pickFeaturedRestaurant,
+} from './utils/shareState'
 import './App.css'
 
 const NYC_CENTER = { lat: 40.7580, lng: -73.9855 }
@@ -55,6 +63,7 @@ export default function App() {
   const [error, setError] = useState(null)
   const [searchCenter, setSearchCenter] = useState(NYC_CENTER)
   const [searchRadius, setSearchRadius] = useState(DEFAULT_RADIUS)
+  // shareToast is false when hidden, or one of 'copied' | 'shared' | 'tweet'.
   const [shareToast, setShareToast] = useState(false)
   const [pinHistory, setPinHistory] = useState(() => getPinHistory())
   // true while user is panning to reposition before re-dropping the pin
@@ -185,6 +194,20 @@ export default function App() {
     }
   }, [searchCenter, searchRadius, searchRestaurants])
 
+  // Render an exact reveal reconstructed from a shared-link snapshot, WITHOUT
+  // re-running the geocode -> cuisine -> Overpass pipeline (which is
+  // non-deterministic and would not return the same restaurant). The pin and
+  // result are set directly so the receiver sees precisely what was shared.
+  const showSharedResult = useCallback((reconstructed) => {
+    // Bump the version so any auto-pin/in-flight pipeline can't overwrite this.
+    ++searchVersionRef.current
+    lastCuisineRef.current = reconstructed.cuisine
+    setPin({ lat: reconstructed.location.lat, lng: reconstructed.location.lng })
+    setError(null)
+    setLoading(false)
+    setResult(reconstructed)
+  }, [])
+
   const handleMapClick = useCallback((lat, lng) => {
     setRepositioning(false)
     const roundedLat = Math.round(lat * 1000) / 1000
@@ -244,57 +267,83 @@ export default function App() {
     setError(null)
     setLoading(false)
     setRepositioning(false)
-    // Clear ?lat&lng params from URL when closing
+    // Clear share params from URL when closing
     const url = new URL(window.location.href)
     url.searchParams.delete('lat')
     url.searchParams.delete('lng')
+    url.searchParams.delete('r')
     window.history.replaceState({}, '', url.toString())
   }, [])
 
-  // Share pin: compose tweet with cuisine + location, then fallback to clipboard
+  // Pop a toast with a truthful message. `tone` controls icon/wording.
+  const flashToast = useCallback((message) => {
+    setShareToast(message)
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
+    toastTimerRef.current = setTimeout(() => setShareToast(false), 2500)
+  }, [])
+
+  // Share pin. Encodes the FULL reveal (pin, place label, cuisine, and the exact
+  // restaurant the user saw) into the URL so the link reopens that same reveal
+  // deterministically. On mobile we use the Web Share sheet and only confirm on
+  // a real share; on desktop we copy the link and only say "copied" once the
+  // clipboard write actually succeeds.
   const handleSharePin = useCallback(() => {
     if (!result) return
     const { lat, lng } = result.location
 
-    // Build the shareable URL
+    // Build the shareable URL: legacy lat/lng (fallback + OG) plus the full
+    // snapshot in `r` for deterministic reconstruction.
+    const snapshot = buildShareSnapshot(result)
     const url = new URL(window.location.href)
-    url.searchParams.set('lat', lat.toFixed(4))
-    url.searchParams.set('lng', lng.toFixed(4))
+    url.searchParams.set('lat', Number(lat).toFixed(4))
+    url.searchParams.set('lng', Number(lng).toFixed(4))
+    if (snapshot) {
+      url.searchParams.set('r', encodeShareSnapshot(snapshot))
+    }
     const shareUrl = url.toString()
     window.history.replaceState({}, '', shareUrl)
 
-    // Build tweet text with cuisine and location
-    const loc = result.location
-    const neighborhood = loc.city || loc.county || loc.state || loc.country || 'NYC'
+    // Share text names the actual restaurant the user saw, plus the pinned place.
+    const place = placeLabel(result.location)
+    const featured = pickFeaturedRestaurant(result.restaurants)
     const cuisineType = result.cuisine?.cuisineType || 'a cuisine'
-    const shareText = `I dropped a pin on ${neighborhood} and found ${cuisineType} in NYC 🍽️📍`
+    const shareText = featured?.name
+      ? `I dropped a pin in ${place} and got ${featured.name}, NYC. Roll your own:`
+      : `I dropped a pin in ${place} and got ${cuisineType} in NYC. Roll your own:`
 
-    // 1. Try Web Share API
+    // 1. Mobile / Web Share sheet: only confirm on an actual successful share.
     if (navigator.share) {
       navigator.share({
         title: 'Random Pin Cuisine',
         text: shareText,
         url: shareUrl,
+      }).then(() => {
+        flashToast('shared')
       }).catch(() => {
-        // User cancelled or API failed — fall through silently
+        // User cancelled or the sheet failed: do NOT claim success. Stay silent.
       })
       return
     }
 
-    // 2. Fall back to Twitter intent
-    const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`
-    window.open(tweetUrl, '_blank', 'noopener,noreferrer')
-
-    // 3. Also copy URL to clipboard as third option
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(shareUrl).catch(() => {})
+    // 2. Desktop: copy the link, and only toast "copied" once the write resolves.
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(shareUrl)
+        .then(() => flashToast('copied'))
+        .catch(() => {
+          // Clipboard blocked: fall back to a Twitter intent so the share isn't
+          // a dead end, and tell the truth (we opened a tab, did not copy).
+          const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`
+          window.open(tweetUrl, '_blank', 'noopener,noreferrer')
+          flashToast('tweet')
+        })
+      return
     }
 
-    // Show toast
-    setShareToast(true)
-    if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
-    toastTimerRef.current = setTimeout(() => setShareToast(false), 2500)
-  }, [result])
+    // 3. No clipboard at all: open a Twitter intent and say so honestly.
+    const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`
+    window.open(tweetUrl, '_blank', 'noopener,noreferrer')
+    flashToast('tweet')
+  }, [result, flashToast])
 
   // Called ONLY when the user explicitly clicks "Search This Area" in the mini-map.
   // Updates committed center/radius then re-searches — no auto-trigger on zoom/drag.
@@ -402,14 +451,30 @@ export default function App() {
   // an auto-pin for instant gratification on each fresh load.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
+
+    // 1. Full-reveal snapshot (`r`): reconstruct the EXACT shared result directly,
+    // skipping the non-deterministic re-fetch so the receiver sees the same
+    // restaurant that was screenshotted.
+    const encoded = params.get('r')
+    if (encoded) {
+      const snapshot = decodeShareSnapshot(encoded)
+      const reconstructed = snapshotToResult(snapshot)
+      if (reconstructed) {
+        showSharedResult(reconstructed)
+        return
+      }
+      // Snapshot was partial/invalid: fall through to the lat/lng reprocess below.
+    }
+
+    // 2. Legacy / partial link: restore the pin by reprocessing lat/lng.
     const lat = parseFloat(params.get('lat'))
     const lng = parseFloat(params.get('lng'))
     if (!isNaN(lat) && !isNaN(lng)) {
-      // Shared link: restore that exact pin
       processPin(lat, lng)
       return
     }
-    // Auto-fire a seeded delight pin so the page is never blank on load
+
+    // 3. No shared params: auto-fire a seeded delight pin so the page is never blank.
     const { lat: seedLat, lng: seedLng } = getSeededAutoPin()
     processPin(seedLat, seedLng)
   // eslint-disable-next-line react-hooks/exhaustive-deps

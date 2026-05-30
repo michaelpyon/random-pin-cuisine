@@ -1,6 +1,11 @@
 {
   "framework": "vite",
   "rewrites": [
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "query", "key": "r" }],
+      "destination": "/api/share-meta"
+    },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
