@@ -1,16 +1,48 @@
-# React + Vite
+# Random Pin Cuisine
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Drop a pin anywhere on a world map and find that region's cuisine in New York City.
+The app reverse-geocodes your pin, classifies the regional cuisine, and surfaces
+real NYC restaurants serving it from OpenStreetMap. Ocean, Antarctica, and remote
+pins get their own playful responses.
 
-Currently, two official plugins are available:
+Live: https://random-pin-cuisine.vercel.app
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## How it works
 
-## React Compiler
+1. You drop a pin (or roll the globe for a random one).
+2. The pin is reverse-geocoded via Nominatim (OpenStreetMap).
+3. The region is matched to a cuisine using a built-in lookup table.
+4. Matching NYC restaurants are pulled from the Overpass API (OpenStreetMap).
+5. The reveal is shareable: a link reopens the exact same restaurant with its own preview image.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+All third party calls run in Vercel serverless functions under `api/`. No API
+keys ship in the browser bundle.
 
-## Expanding the ESLint configuration
+## Tech stack
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- React 19 and Vite
+- Leaflet and react-leaflet for the world map
+- Vercel serverless and edge functions for geocoding, restaurant search, and share images
+- Nominatim and Overpass (OpenStreetMap) for location and restaurant data
+- @vercel/og for dynamic per-result Open Graph images
+
+## Local development
+
+```bash
+npm install
+npm run dev      # Vite dev server, typically http://localhost:5173
+npm run build    # production build
+npm run preview  # preview the production build
+```
+
+No keys are needed to run the frontend. Optional server-side variables for the
+functions are documented in `.env.example` (`GOOGLE_MAPS_API_KEY`,
+`NOMINATIM_USER_AGENT`, `REDIS_URL`); all are optional.
+
+## Project layout
+
+- `src/` React app: `App.jsx`, `components/`, `utils/`
+- `api/` Vercel functions: `find-restaurants.js`, `reverse-geocode.js`, `og.js`, `share-meta.js`
+- `vercel.json` rewrites `?r=` share links through `share-meta.js` for crawler previews
+
+See `CLAUDE.md` for a deeper architecture walkthrough.
