@@ -11,11 +11,41 @@ import './App.css'
 const NYC_CENTER = { lat: 40.7580, lng: -73.9855 }
 const DEFAULT_RADIUS = 5000
 
+// Geographic edge cases: these are intended, whimsical, "you dropped wrong" states.
+// They are NOT technical failures and should NOT look like errors.
 const EDGE_CASE_MESSAGES = {
   ocean: "You dropped a pin in the ocean! Fish don't have restaurants... yet. Try again on land!",
   antarctica: "Brr! Antarctica's cuisine is mostly freeze-dried rations and penguin-adjacent sadness. Try somewhere warmer!",
   arctic: "You found the North Pole! Santa's kitchen is invite-only. Try somewhere more accessible!",
   unknown: "This place is so remote, even Google Maps gave up. Try somewhere more... inhabited!",
+}
+
+// A hand-picked set of vivid, reliably-classifiable food regions that reliably
+// have NYC representation. Used ONLY for the very first auto-pin so new visitors
+// always see a satisfying reveal, never an ocean/edge-case on cold load.
+const SEED_REGIONS = [
+  { lat: 40.8400, lng: 14.2500, label: 'Naples, Italy' },
+  { lat: 17.0600, lng: -96.7200, label: 'Oaxaca, Mexico' },
+  { lat: 13.7500, lng: 100.5100, label: 'Bangkok, Thailand' },
+  { lat: 21.0200, lng: 105.8500, label: 'Hanoi, Vietnam' },
+  { lat: 41.0100, lng: 28.9700, label: 'Istanbul, Turkey' },
+  { lat: 19.0700, lng: 72.8800, label: 'Mumbai, India' },
+  { lat: 35.6800, lng: 139.6500, label: 'Tokyo, Japan' },
+  { lat: 37.9800, lng: 23.7200, label: 'Athens, Greece' },
+  { lat: 31.2200, lng: 29.9500, label: 'Alexandria, Egypt' },
+  { lat: 1.3500,  lng: 103.8200, label: 'Singapore' },
+  { lat: 23.1200, lng: -82.3800, label: 'Havana, Cuba' },
+  { lat: -23.5500, lng: -46.6300, label: 'Sao Paulo, Brazil' },
+]
+
+function getSeededAutoPin() {
+  const region = SEED_REGIONS[Math.floor(Math.random() * SEED_REGIONS.length)]
+  // Tiny jitter so repeated visits don't land on the exact same pixel
+  const jitter = () => (Math.random() - 0.5) * 0.15
+  return {
+    lat: Math.round((region.lat + jitter()) * 1000) / 1000,
+    lng: Math.round((region.lng + jitter()) * 1000) / 1000,
+  }
 }
 
 export default function App() {
@@ -142,7 +172,11 @@ export default function App() {
       // Only surface the error if this is still the active search
       if (searchVersionRef.current === myVersion) {
         console.error('Pipeline error:', err)
-        setError(`Something went wrong: ${err.message}`)
+        // Mark as a real technical failure so the UI renders it differently
+        // from the whimsical geographic edge cases above.
+        const technicalErr = new Error(err.message || 'Something went wrong on our end.')
+        technicalErr.isTechnical = true
+        setError(technicalErr)
       }
     } finally {
       if (searchVersionRef.current === myVersion) {
@@ -361,14 +395,23 @@ export default function App() {
     }
   }, [pin, hasDroppedPin])
 
-  // On mount: check URL for ?lat=&lng= to auto-load a shared pin
+  // On mount: check URL for ?lat=&lng= to auto-load a shared pin.
+  // If no shared pin and this is a first-time visitor, auto-fire one seeded
+  // pin from a curated list of vivid food regions so the app is immediately
+  // alive rather than blank. Returning visitors (rpc-has-dropped = 1) also get
+  // an auto-pin for instant gratification on each fresh load.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const lat = parseFloat(params.get('lat'))
     const lng = parseFloat(params.get('lng'))
     if (!isNaN(lat) && !isNaN(lng)) {
+      // Shared link: restore that exact pin
       processPin(lat, lng)
+      return
     }
+    // Auto-fire a seeded delight pin so the page is never blank on load
+    const { lat: seedLat, lng: seedLng } = getSeededAutoPin()
+    processPin(seedLat, seedLng)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -377,7 +420,7 @@ export default function App() {
       <header className="app-header">
         <h1 className="app-title">📍 Random Pin</h1>
         <p className="app-subtitle">
-          Drop a pin anywhere. Find that cuisine in NYC.
+          Roll a pin anywhere on the globe. Find that cuisine in NYC.
         </p>
       </header>
 
@@ -393,7 +436,7 @@ export default function App() {
         {!pin && !loading && !repositioning && (
           <div className="map-hint map-hint--desktop">
             <span className="map-hint-pulse" />
-            <span className="map-hint-text">Pan map &amp; tap Drop Pin, or click anywhere</span>
+            <span className="map-hint-text">Hit 🎲 to roll, or click anywhere on the map</span>
           </div>
         )}
 
@@ -404,24 +447,24 @@ export default function App() {
           onClear={handleHistoryClear}
         />
 
-        {/* Random Pin button with [R] keyboard hint */}
+        {/* Random Pin primary CTA with [R] keyboard hint */}
         <div className="random-pin-wrapper">
           <button
-            className={`random-pin-btn ${!hasDroppedPin && !loading ? 'random-pin-btn--pulse' : ''}`}
+            className={`random-pin-btn random-pin-btn--primary ${!hasDroppedPin && !loading ? 'random-pin-btn--pulse' : ''}`}
             onClick={handleRandomPin}
             disabled={loading}
-            title="Random Pin (press R)"
+            title="Roll a random pin (press R)"
           >
-            {loading ? '...' : '🎲 Random Pin'}
+            {loading ? '...' : '🎲 Roll the Globe'}
           </button>
           {!loading && <span className="random-pin-kbd">[R]</span>}
         </div>
 
-        {/* First-visit welcome card */}
-        {!hasDroppedPin && !loading && !pin && (
+        {/* First-visit welcome card: only shown if the auto-pin somehow didn't fire */}
+        {!hasDroppedPin && !loading && !pin && !error && (
           <div className="welcome-card">
-            <h2>Drop a pin anywhere on the globe</h2>
-            <p>We'll identify the local cuisine and find restaurants serving it in NYC.</p>
+            <h2>Roll a pin anywhere on the globe</h2>
+            <p>We'll identify the local cuisine and find you a restaurant in NYC.</p>
             <span className="welcome-arrow">👇</span>
           </div>
         )}

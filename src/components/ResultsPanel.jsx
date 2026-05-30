@@ -96,7 +96,13 @@ export default function ResultsPanel({ result, loading, error, onClose, onShareP
       )}
 
       {loading && <LoadingState />}
-      {error && <ErrorState message={error} onRetry={onClose} />}
+      {error && (
+        <ErrorState
+          message={typeof error === 'string' ? error : (error.message || 'Something went wrong on our end.')}
+          isEdgeCase={typeof error === 'string'}
+          onRetry={onClose}
+        />
+      )}
       {result && !loading && (
         <ResultContent
           result={result}
@@ -163,14 +169,31 @@ function LoadingState() {
   )
 }
 
-function ErrorState({ message, onRetry }) {
+// isEdgeCase = true  -> whimsical geographic outcome (ocean, Antarctica, etc.)
+// isEdgeCase = false -> real technical failure (network error, 502, timeout, etc.)
+function ErrorState({ message, isEdgeCase, onRetry }) {
+  if (isEdgeCase) {
+    return (
+      <div className="error-state error-state--edge">
+        <span className="edge-case-icon">🌍</span>
+        <p className="edge-case-message">{message}</p>
+        {onRetry && (
+          <button className="error-retry-btn" onClick={onRetry}>
+            Roll again →
+          </button>
+        )}
+      </div>
+    )
+  }
+
   return (
-    <div className="error-state">
-      <span className="error-icon">⚠️ Oops</span>
+    <div className="error-state error-state--technical">
+      <span className="error-icon">⚠️ Something went wrong</span>
       <p>{message}</p>
+      <p className="error-hint">This is on our end, not yours. Give it another roll.</p>
       {onRetry && (
-        <button className="error-retry-btn" onClick={onRetry}>
-          Try a different pin →
+        <button className="error-retry-btn error-retry-btn--technical" onClick={onRetry}>
+          Try again →
         </button>
       )}
     </div>

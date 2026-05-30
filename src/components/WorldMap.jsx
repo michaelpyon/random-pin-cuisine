@@ -192,10 +192,10 @@ export default function WorldMap({ pin, onMapClick, showCrosshair, onDropPin, on
         </div>
       )}
 
-      {/* ── Drop Pin Here button ── */}
+      {/* ── Drop Pin Here button (secondary, demoted from primary CTA) ── */}
       {showCrosshair && (
-        <button className="drop-pin-btn" onClick={handleDropPin}>
-          📍 Drop Pin Here
+        <button className="drop-pin-btn drop-pin-btn--secondary" onClick={handleDropPin}>
+          📍 Drop pin here
         </button>
       )}
     </div>

@@ -72,32 +72,34 @@
   to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 }
 
-/* ── Drop Pin Here button ────────────────────────────────────────────────────── */
+/* ── Drop Pin Here button (secondary, demoted) ───────────────────────────────── */
 .drop-pin-btn {
   position: absolute;
   bottom: 152px;     /* above history strip (104px) + Random Pin btn (32px) */
   left: 50%;
   transform: translateX(-50%);
   z-index: 1001;
-  padding: 14px 34px;
-  font-size: 1.05rem;
-  font-weight: 700;
+  padding: 10px 22px;
+  font-size: 0.88rem;
+  font-weight: 500;
   font-family: inherit;
-  color: #fff;
-  background: var(--accent);
-  border: none;
+  color: var(--text-secondary);
+  background: rgba(15, 17, 23, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 50px;
   cursor: pointer;
-  box-shadow: 0 4px 24px var(--accent-glow), 0 2px 10px rgba(0, 0, 0, 0.4);
-  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
   white-space: nowrap;
   animation: btn-rise 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .drop-pin-btn:hover {
-  background: var(--accent-hover);
-  transform: translateX(-50%) translateY(-2px);
-  box-shadow: 0 6px 32px var(--accent-glow), 0 4px 14px rgba(0, 0, 0, 0.4);
+  color: var(--text-primary);
+  background: rgba(249, 115, 22, 0.12);
+  border-color: rgba(249, 115, 22, 0.4);
+  transform: translateX(-50%) translateY(-1px);
 }
 
 .drop-pin-btn:active {
@@ -254,7 +256,7 @@
   gap: 4px;
 }
 
-/* Random Pin Button */
+/* Random Pin Button — primary CTA, the single dominant action */
 .random-pin-btn {
   padding: 14px 32px;
   font-size: 1rem;
@@ -270,10 +272,23 @@
   white-space: nowrap;
 }
 
+/* Primary modifier: bigger, bolder, more presence */
+.random-pin-btn--primary {
+  padding: 16px 40px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  box-shadow: 0 6px 28px var(--accent-glow), 0 3px 12px rgba(0, 0, 0, 0.35);
+}
+
 .random-pin-btn:hover {
   background: var(--accent-hover);
   transform: translateY(-2px);
   box-shadow: 0 6px 28px var(--accent-glow), 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.random-pin-btn--primary:hover {
+  box-shadow: 0 8px 36px var(--accent-glow), 0 5px 16px rgba(0, 0, 0, 0.35);
 }
 
 .random-pin-btn:active {
@@ -546,10 +561,15 @@
   line-height: 1.4;
 }
 
-/* Error State */
+/* Error State — shared base */
 .error-state {
   text-align: center;
   padding: 24px 0;
+}
+
+/* Technical failure: red badge, honest tone */
+.error-state--technical {
+  /* slight red tint on the panel to signal a real problem */
 }
 
 .error-icon {
@@ -561,6 +581,13 @@
   background: rgba(239, 68, 68, 0.1);
   padding: 4px 10px;
   border-radius: 4px;
+}
+
+.error-hint {
+  margin-top: 6px;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-style: italic;
 }
 
 .error-state p {
@@ -587,6 +614,38 @@
 .error-retry-btn:hover {
   background: var(--accent);
   color: white;
+}
+
+/* Technical retry button: red accent to match the error tone */
+.error-retry-btn--technical {
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #ef4444;
+}
+
+.error-retry-btn--technical:hover {
+  background: #ef4444;
+  border-color: #ef4444;
+  color: white;
+}
+
+/* Edge-case state: playful, not alarming */
+.error-state--edge {
+  padding: 32px 8px;
+}
+
+.edge-case-icon {
+  font-size: 2.4rem;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.edge-case-message {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  line-height: 1.6;
+  max-width: 280px;
+  margin: 0 auto;
+  font-style: italic;
 }
 
 /* Result Content */
