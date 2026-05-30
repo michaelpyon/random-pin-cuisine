@@ -1,6 +1,12 @@
 import { withCache } from './_lib/redis-cache.js'
 
-const OVERPASS_URL = 'https://overpass-api.de/api/interpreter'
+// Primary and fallback Overpass endpoints. Kumi is a reliable community mirror.
+const OVERPASS_ENDPOINTS = [
+  'https://overpass-api.de/api/interpreter',
+  'https://overpass.kumi.systems/api/interpreter',
+]
+// User-Agent required by Overpass API policy. Without it the server returns 406.
+const OVERPASS_USER_AGENT = 'RandomPinCuisine/1.0 (https://random-pin-cuisine.vercel.app; contact: michaelpyon@gmail.com)'
 const OVERPASS_TTL_MS = 1000 * 60 * 60
 const GOOGLE_TTL_MS = 1000 * 60 * 60 * 24
 const DEFAULT_RADIUS = 5000
@@ -124,23 +130,51 @@ async function queryOverpassByNameRadius(searchTerm, center, radius) {
   return queryOverpass(query)
 }
 
+// Attempt a single POST to one Overpass endpoint. Throws on non-2xx.
+async function fetchOverpass(url, query) {
+  const response = await fetch(url, {
+    method: 'POST',
+    body: `data=${encodeURIComponent(query)}`,
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      // User-Agent is required. Overpass returns 406 without it.
+      'User-Agent': OVERPASS_USER_AGENT,
+    },
+  })
+
+  if (!response.ok) {
+    throw new Error(`Overpass ${url} returned HTTP ${response.status}`)
+  }
+
+  const data = await response.json()
+  return (data.elements || []).filter((element) => element.tags?.name)
+}
+
+// Try each endpoint in order. For each endpoint, retry once on transient failure
+// (429, 5xx, or network error) before moving to the next mirror.
 async function queryOverpass(query) {
   const cacheKey = `overpass:${query.trim()}`
   return withCache(cacheKey, OVERPASS_TTL_MS, async () => {
-    const response = await fetch(OVERPASS_URL, {
-      method: 'POST',
-      body: `data=${encodeURIComponent(query)}`,
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-    })
+    const errors = []
 
-    if (!response.ok) {
-      throw new Error(`Overpass returned HTTP ${response.status}`)
+    for (const url of OVERPASS_ENDPOINTS) {
+      // 2 attempts per endpoint (initial + 1 retry on transient failure)
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        try {
+          return await fetchOverpass(url, query)
+        } catch (err) {
+          errors.push(`${url} attempt ${attempt}: ${err.message}`)
+          // On the first attempt, wait 800ms before retrying the same endpoint.
+          // On the second failure, break out and try the next mirror.
+          if (attempt === 1) {
+            await new Promise((resolve) => setTimeout(resolve, 800))
+          }
+        }
+      }
     }
 
-    const data = await response.json()
-    return (data.elements || []).filter((element) => element.tags?.name)
+    // All endpoints and retries exhausted. Surface a clean error message.
+    throw new Error(`Restaurant search failed after trying all Overpass endpoints. Last errors: ${errors.slice(-2).join(' | ')}`)
   })
 }
 
